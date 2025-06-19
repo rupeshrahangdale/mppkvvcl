@@ -15,6 +15,8 @@ class AppColors {
 class AppAssets {
   // Logo
   static const String logo = 'assets/images/MPPKVVCL_Logo 1.png';
+  static const String pandingComplaintIcon = 'assets/dummy_data/panding complaint.png';
+  static const String myComplaintIcon = 'assets/dummy_data/my complaint.png';
 
 
   // Icons
@@ -38,10 +40,11 @@ class AppStrings {
   static const String appDescription = 'MPPKVVCL Mobile App';
   static const String appVersion = 'v1.0.0';
   static const String appPowerdby = 'Powered by NEXTINLABs';
-  static const String welcomeMessage = 'Welcome to MPPKVVCL Mobile App';
+  static const String welcomeMessage = 'Welcome';
   static const String loginButton = 'Log In';
   static const String logoutButton = 'Log Out';
   static const String allComplaintsTitle = 'All Complaints';
+  static const String allPandingComplaints = 'Pending Complaints';
   static const String termsAndConditions = 'Terms and Conditions';
   static const String privacyPolicy = 'Privacy Policy';
   static const String contactUs = 'Contact Us';
@@ -99,6 +102,7 @@ class AppStrings {
   static const String complaintSubCategory = 'Complaint Sub-Category';
   static const String complaintAttachments = 'Complaint Attachments';
   static const String complaintComments = 'Complaint Comments';
+  static const String addNewComplaint  = 'Add New Complaint';
 
   static const String myComplaint = 'My Complaint';
 

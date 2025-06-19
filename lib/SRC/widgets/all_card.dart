@@ -216,3 +216,50 @@ Widget buildStatCard(String value, String label) {
     ),
   );
 }
+
+
+
+//====================================================================
+
+
+
+
+
+
+
+ Widget buildActionCard({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppDimensions.defaultPaddingVertical, horizontal: AppDimensions.defaultPaddingHorizontal),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 45, color: AppColors.textBlack),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.subtitle.copyWith(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }

@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             AppStrings.appName,
                             style: AppTextStyles.heading.copyWith(
                               fontSize: 24,
-                              color: AppColors.textBlack,
+                              color: AppColors.primaryBlue,
                             ),
                           ),
 
