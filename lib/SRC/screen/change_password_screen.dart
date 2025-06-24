@@ -31,49 +31,42 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               AppBarSection(),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.defaultPaddingHorizontal *2,
-                    vertical: AppDimensions.defaultPaddingHorizontal
-                ),
+                    horizontal: AppDimensions.defaultPaddingHorizontal * 2,
+                    vertical: AppDimensions.defaultPaddingHorizontal),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    Text(
-                      'Change Password',
-                      style: AppTextStyles.heading
-                          .copyWith(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
+                    Text(AppStrings.changePassword,
+                        style: AppTextStyles.heading),
+                    Text(AppStrings.changePasswordDescription,
+                        style: AppTextStyles.caption),
                     const SizedBox(height: 25),
-                    CostomInputField(
-                      label: '',
-                      hintText: 'Old Password',
-                      controller: _oldPasswordController,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: MyTextField(
+                          fieldName: AppStrings.oldPassword,
+                          myController: _oldPasswordController),
                     ),
-                     CostomInputField(
-                      label: '',
-                      hintText: 'New Password',
-                      controller: _newPasswordController,
-                      obscureText: _obscureNew,
-                    ),
-                     CostomInputField(
-                      label: '',
-                      hintText: 'Confirm Password',
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirm,
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirm
-                            ? Icons.visibility_off
-                            : Icons.visibility),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirm = !_obscureConfirm;
-                          });
-                        },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: MyTextField(
+                        fieldName: AppStrings.newPassword,
+                        myController: _newPasswordController,
+                        obscureText: _obscureConfirm,
                       ),
                     ),
-                    const SizedBox(height: 36),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: MyTextField(
+                        fieldName: AppStrings.confirmPassword,
+                        myController: _confirmPasswordController,
+                        obscureText: _obscureConfirm,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
                     CostomPrimaryButton(
-                      text: 'Save',
+                      text: "Update Password",
                       onPressed: () {
                         // TODO: Implement save logic
                         if (_newPasswordController.text ==
@@ -81,10 +74,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           // Logic to change password
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text('Password changed successfully!')),
+                                content:
+                                    Text('Password changed successfully!')),
                           );
                           // navigate back or clear fields
-          
+
                           _oldPasswordController.clear();
                           _newPasswordController.clear();
                           _confirmPasswordController.clear();

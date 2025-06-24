@@ -1,6 +1,3 @@
-
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mppkvvcl/SRC/constent/app_constant.dart';
@@ -8,11 +5,13 @@ import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 Widget buildPermissionCard(
     IconData icon, Color iconColor, String title, String description) {
   return Container(
-    margin: const EdgeInsets.symmetric(vertical:AppDimensions.defaultMargin, ),
-    padding: const EdgeInsets.all(AppDimensions.defaultPadding),
+    margin: const EdgeInsets.symmetric(
+      vertical: AppDimensions.defaultMargin,
+    ),
+    padding: const EdgeInsets.all(AppDimensions.defaultPaddingVertical),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
       border: Border.all(color: Colors.grey.shade200),
       boxShadow: [
         BoxShadow(
@@ -44,10 +43,7 @@ Widget buildPermissionCard(
   );
 }
 
-
-
 //====================================================================
-
 
 class CategoryCard extends StatelessWidget {
   final String title;
@@ -78,10 +74,7 @@ class CategoryCard extends StatelessWidget {
   }
 }
 
-
-
 //====================================================================
-
 
 Widget buildComplaintCard({
   required String id,
@@ -144,46 +137,124 @@ Widget buildComplaintCard({
         ),
         const SizedBox(height: 12),
         Text(
-          'ID: #$id',
+          'Complaint No. : #$id',
           style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
-        Row(
-          children: [
-            Icon(Icons.access_time, size: 16, color: Colors.grey.shade600),
-            const SizedBox(width: 4),
-            Text(
-              date,
-              style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
-            ),
-          ],
+        Text(
+          "🗓️  $date",
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
-        Row(
-          children: [
-            Icon(Icons.location_on_outlined,
-                size: 16, color: Colors.grey.shade600),
-            const SizedBox(width: 4),
-            Text(
-              location,
-              style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
-            ),
-          ],
+        Text(
+          "📍 $location",
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
       ],
     ),
   );
 }
 
-
-
 //====================================================================
-
-
 
 Widget buildStatCard(String value, String label) {
   return Container(
-    padding: const EdgeInsets.symmetric(vertical: AppDimensions.defaultPaddingVertical, horizontal: AppDimensions.defaultPaddingHorizontal),
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+      border: Border.all(color: Colors.black26),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(value, style: AppTextStyles.subHeading),
+        const SizedBox(height: 3),
+        Text(label, style: AppTextStyles.caption),
+      ],
+    ),
+  );
+}
+
+//====================================================================
+
+Widget buildActionCard({
+  required String title,
+  required Image image,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: AppMediaQuery.screenHeight * 0.2,
+      padding: const EdgeInsets.symmetric(
+        vertical: AppDimensions.defaultPaddingVertical,
+        horizontal: AppDimensions.defaultPaddingHorizontal,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          image,
+          const SizedBox(height: 16),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.subtitle.copyWith(fontSize: 16),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ==================================================================
+
+Widget buildPendingComplaintCard({
+  required String id,
+  required String title,
+  required String date,
+  required String location,
+  required String status,
+  required String complaintDescription,
+}) {
+  // Color statusColor;
+  // switch (status.toLowerCase()) {
+  //   case 'open':
+  //     statusColor = Colors.blue;
+  //     break;
+  //   case 'resolved':
+  //     statusColor = Colors.green;
+  //     break;
+  //   default:
+  //     statusColor = Colors.orange;
+  // }
+
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
@@ -196,70 +267,106 @@ Widget buildStatCard(String value, String label) {
       ],
     ),
     child: Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: AppTextStyles.subtitle,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                status,
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         Text(
-          value,
-          style: AppTextStyles.heading.copyWith(
-            color: AppColors.primaryBlue,
-            fontSize: 24,
-          ),
+          'Complaint No. : #$id',
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
         Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: Colors.grey.shade600,
-          ),
+          "$complaintDescription",
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "🗓️  $date",
+              overflow: TextOverflow.ellipsis,
+              style:
+                  AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
+            ),
+            Text(
+              "📍 $location",
+              overflow: TextOverflow.ellipsis,
+              style:
+                  AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
+            ),
+          ],
         ),
       ],
     ),
   );
 }
 
+// ==================================================================
 
+class ComplaintCategoryCard extends StatelessWidget {
+  final String title;
+  final String image;
 
-//====================================================================
+  const ComplaintCategoryCard({required this.title, required this.image});
 
-
-
-
-
-
-
- Widget buildActionCard({
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppDimensions.defaultPaddingVertical, horizontal: AppDimensions.defaultPaddingHorizontal),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 45, color: AppColors.textBlack),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.subtitle.copyWith(fontSize: 16),
-            ),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.16),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            image,
+            width: 60,
+            height: 60,
+            fit: BoxFit.contain,
+          ),
+          SizedBox(height: 12),
+          Text(title,
+              style: AppTextStyles.subtitle.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              )),
+        ],
       ),
     );
   }
+}

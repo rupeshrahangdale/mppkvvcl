@@ -1,78 +1,184 @@
 import 'package:flutter/material.dart';
-import 'package:animated_custom_dropdown/custom_dropdown.dart';
+import 'package:mppkvvcl/SRC/constent/app_constant.dart';
+import 'package:mppkvvcl/SRC/widgets/app_bar_section.dart';
+import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
+import 'package:mppkvvcl/SRC/widgets/widgets.dart';
 
+import '../widgets/input_field.dart';
+// import 'package:image_picker/image_picker.dart';
 
-
-class JobRoleDropdownScreen extends StatefulWidget {
+class AddComplaintScreen extends StatefulWidget {
   @override
-  _JobRoleDropdownScreenState createState() => _JobRoleDropdownScreenState();
+  _AddComplaintScreenState createState() => _AddComplaintScreenState();
 }
 
-class _JobRoleDropdownScreenState extends State<JobRoleDropdownScreen> {
-  final List<String> jobRoles = [
-    'Developer',
-    'Designer',
-    'Consultant',
-    'Student',
-  ];
+class _AddComplaintScreenState extends State<AddComplaintScreen> {
+  // Variables to hold selected values
+  String? selectedEquipment;
+  String? selectedComplaint;
+  String? selectedVendor;
+  String? photoPath;
+  final moreInfoController = TextEditingController();
 
-  String? selectedRole;
+  final List<String> equipmentList = ['Transformer', 'Switch', 'Cable'];
+  final List<String> complaintList = ['Not Working', 'Sparking', 'Noise'];
+  final List<String> vendorList = ['Vendor A', 'Vendor B', 'Vendor C'];
+
+  // Future<void> pickPhoto() async {
+  //   final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   if (picked != null) {
+  //     setState(() {
+  //       photoPath = picked.path;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: Container(
-            padding: EdgeInsets.all(16),
-            width: 300,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Job Roles Search Dropdown',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 12),
-                CustomDropdown.search(
-                  hintText: 'Select job role',
-                  items: jobRoles,
-                  initialItem: selectedRole,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRole = value;
-                    });
-                    print("Selected: $value");
-                  },
-                  decoration: CustomDropdownDecoration(
-                    closedFillColor: Colors.grey[100],
-                    expandedFillColor: Colors.grey[100],
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    closedBorder: Border.all(color: Colors.grey.shade300),
-                    expandedBorder: Border.all(color: Colors.grey.shade400),
-                    closedBorderRadius: BorderRadius.circular(10),
-                    expandedBorderRadius: BorderRadius.circular(10),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // app bar section
+              AppBarSection(),
+              Padding(
+                padding: const EdgeInsets.all(AppDimensions.defaultPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 5),
+                    Text(AppStrings.newComplaintRegister,
+                        style: AppTextStyles.heading),
+                    Text(AppStrings.newComplaintRegisterDescription,
+                        style: AppTextStyles.caption),
+                    const SizedBox(height: 25),
 
-                  ),
+                    // Equipment Dropdown
+
+                    CustomDropdownWidget(
+                      lableText: 'Equipment Type',
+                      hintText: 'Select Equipment',
+                      items: equipmentList,
+                      selectedItem: selectedEquipment,
+                      onChanged: (val) =>
+                          setState(() => selectedEquipment = val),
+                    ),
+                    SizedBox(height: 8),
+
+                    CustomDropdownWidget(
+                        lableText: 'Complaint Type',
+                        items: complaintList,
+                        selectedItem: selectedComplaint,
+                        hintText: "Complaint Type ",
+                        onChanged: (val) =>
+                            setState(() => selectedComplaint = val)),
+                    SizedBox(height: 8),
+
+                    // Vendor Dropdown
+
+                    CustomDropdownWidget(
+                      lableText: 'Vendor Name',
+                      items: vendorList,
+                      selectedItem: selectedVendor,
+                      hintText: "Select Vendor",
+                      onChanged: (val) => setState(() => selectedVendor = val),
+                    ),
+
+                    SizedBox(height: 8),
+                    CostomInputField(
+                      label: "More Information",
+                      hintText: "Type",
+                      controller: moreInfoController,
+                      maxLines: 3,
+                    ),
+
+                    SizedBox(height: 8),
+
+                    // Photo Upload
+                    Text('Complaint Photo', style: AppTextStyles.caption),
+                    SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: trigger file picker
+                      },
+                      child: DottedBorderContainer(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.upload,
+                                color: Color(0xFF1A73E8)), // Blue icon
+                            SizedBox(width: 8),
+                            Text(
+                              'Capture Photo',
+                              style: TextStyle(
+                                color: Color(0xFF1A73E8), // Blue text
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    // Create Button
+                    CostomPrimaryButton(
+                      text: 'Create Complaint',
+                      onPressed: () {
+                        // Handle complaint creation logic here
+                        print('Complaint Created');
+
+                        // Show success popup
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => SuccessPopupDialog(
+                            title: AppStrings.complaintCreated,
+                            description: AppStrings.complaintCreatedDescription,
+                            buttonText: AppStrings.okay,
+                            onTap: () {
+                              Navigator.pop(context); // close dialog
+                              Navigator.pop(
+                                  context); // then go back to previous screen
+                            },
+                          ),
+                        );
+                      },
+                    ),
+
+                    // CostomPrimaryButton(text: , onPressed: onPressed)
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class DottedBorderContainer extends StatelessWidget {
+  final Widget child;
+
+  const DottedBorderContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 55,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: const Color(0xFF1A73E8),
+          style: BorderStyle.solid, // Simulating dotted by styling
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(child: child),
     );
   }
 }

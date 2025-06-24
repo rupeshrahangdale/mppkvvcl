@@ -9,22 +9,17 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-
-
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 8), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const PermissionScreen()),
       );
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +30,11 @@ class _SplashScreenState extends State<SplashScreen> {
           height: AppMediaQuery.screenHeight,
           width: AppMediaQuery.screenWidth,
           alignment: Alignment.center,
-
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [ const SizedBox(height: 24),
+            children: [
+              const SizedBox(height: 24),
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: Image.asset(
@@ -49,40 +44,27 @@ class _SplashScreenState extends State<SplashScreen> {
                   fit: BoxFit.contain,
                 ),
               ),
-
-
               Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        AppStrings.appName,
-                        style: AppTextStyles.body
-                      ),
+                      Text(AppStrings.appName, style: AppTextStyles.subtitle),
                       const SizedBox(width: 8),
-                      Text(
-                        AppStrings.appVersion,
-                        style: AppTextStyles.body
-                      ),
+                      Text(AppStrings.appVersion,
+                          style: AppTextStyles.subtitle),
                     ],
                   ),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                          AppStrings.appPowerdby,
-                          style: AppTextStyles.body
-                      ),
-
+                      Text(AppStrings.appPowerdby,
+                          style: AppTextStyles.body.copyWith(fontSize: 10)),
                     ],
-                  )
+                  ),
+                  SizedBox(height: 15),
                 ],
-              ) ,
-
-
-
+              ),
             ],
           ),
         ),

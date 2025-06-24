@@ -5,9 +5,10 @@ import '../constent/app_constant.dart';
 
 Widget AppBarSection() {
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal:AppDimensions.defaultPadding),
+    padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.defaultPadding, vertical: 5),
     decoration: BoxDecoration(
-      color: AppColors.secondaryBlue,
+      color: AppColors.primaryBlue,
       // borderRadius: BorderRadius.circular(12),
       boxShadow: [
         BoxShadow(
@@ -18,18 +19,35 @@ Widget AppBarSection() {
       ],
     ),
     child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Image.asset(
-          AppAssets.logo,
-          height: 60,
-          width: 60,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppStrings.appName,
+              style: AppTextStyles.subtitle.copyWith(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              "MPPKVVCL",
+              style: AppTextStyles.subtitle.copyWith(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Text(
-          AppStrings.appName,
-          style: AppTextStyles.heading,
-          ),
-
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () {
+            // Handle notification button press
+          },
+        ),
       ],
     ),
   );
