@@ -11,7 +11,16 @@ import 'change_password_screen.dart';
 import 'complaint_type_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final String username;
+  final String name;
+  final String? profilePhotoUrl;
+
+  const HomeScreen({
+    Key? key,
+    required this.username,
+    required this.name,
+    this.profilePhotoUrl,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                               color: Colors.black54,
                             ),
                           ),
-                          Text('Rushabh Patel', style: AppTextStyles.heading),
+                          Text(name, style: AppTextStyles.heading),
                           const SizedBox(height: 32),
                           Container(
                             padding: const EdgeInsets.symmetric(

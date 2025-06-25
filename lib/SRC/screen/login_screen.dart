@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mppkvvcl/SRC/screen/my_added_complaint_screen.dart';
 import 'package:mppkvvcl/SRC/screen/new_complaint_screen.dart';
+import 'package:mppkvvcl/SRC/services/api_services.dart';
 import 'package:mppkvvcl/SRC/widgets/app_bar_section.dart';
 import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
 import 'package:mppkvvcl/SRC/widgets/input_field.dart';
@@ -98,14 +101,69 @@ class _LoginScreenState extends State<LoginScreen> {
                     CostomPrimaryButton(
                         text: AppStrings.login,
                         onPressed: () {
-                          print(
-                              "====================================================");
-                          print('Username: \\${_userNameController.text}');
-                          print('Password: \\${_passwordController.text}');
-                          // navigate to home screen or perform login action
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => HomeScreen()),
-                          );
+                          final username = _userNameController.text;
+                          final password = _passwordController.text;
+
+                          // Validate input
+                          if (username.isEmpty || password.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text(AppStrings.fillAllFields),
+                              ),
+                            );
+                            return;
+                          }
+
+                          ApiService()
+                              .login(username, password)
+                              .then((response) {
+                            final decoded = jsonDecode(response.body);
+
+                            if (response.statusCode == 200 &&
+                                decoded['status'] == true) {
+
+                              final user = decoded['user'];
+                              print("ID: ${user['id']}");
+                              print("Name: ${user['name']}");
+                              print("Username: ${user['username']}");
+
+
+                              // Show success message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Colors.green,
+                                  content: Text(decoded['message']),
+                                ),
+                              );
+
+                              // Navigate to home screen
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => HomeScreen(
+                                  username: user['username'],
+                                  name: user['name'],
+                                  profilePhotoUrl: user['profile_photo'],
+                                )
+                                ,),
+                              );
+                            } else {
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text(decoded['message']),
+                                ),
+                              );
+                            }
+                          }).catchError((error) {
+                            // Optional: Handle exceptions (e.g., network errors)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text('Something went wrong: $error'),
+                              ),
+                            );
+                          });
                         }),
                   ],
                 ),

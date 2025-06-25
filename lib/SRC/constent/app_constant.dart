@@ -51,6 +51,9 @@ class AppStrings {
   static const String PandingComplaints = 'Pending \n Complaints';
   static const String allPandingComplaints = 'All Pending Complaints';
   static const String okay = 'Okay';
+  static const String fillAllFields = 'Please fill all the fields before proceeding';
+
+
 
   static const String termsAndConditions = 'Terms and Conditions';
   static const String privacyPolicy = 'Privacy Policy';

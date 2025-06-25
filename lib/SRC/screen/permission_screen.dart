@@ -3,6 +3,7 @@ import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 import 'package:mppkvvcl/SRC/screen/login_screen.dart';
 import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
 
+import '../utils/permissions_helper.dart';
 import '../widgets/all_card.dart';
 
 class PermissionScreen extends StatelessWidget {
@@ -62,7 +63,12 @@ class PermissionScreen extends StatelessWidget {
                 alignment: Alignment.bottomCenter,
                 child: CostomPrimaryButton(
                     text: AppStrings.getStarted,
-                    onPressed: () {
+                    onPressed: () async {
+
+
+
+
+
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );

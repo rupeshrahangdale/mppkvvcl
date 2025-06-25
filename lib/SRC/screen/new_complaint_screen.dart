@@ -3,6 +3,7 @@ import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 import 'package:mppkvvcl/SRC/widgets/app_bar_section.dart';
 import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
 import 'package:mppkvvcl/SRC/widgets/widgets.dart';
+ import 'dart:io';
 
 import '../widgets/input_field.dart';
 // import 'package:image_picker/image_picker.dart';
@@ -19,16 +20,21 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
   String? selectedVendor;
   String? photoPath;
   final moreInfoController = TextEditingController();
+  //
+  // XFile? _pickedImage;
+  // String? _pickedImageName;
+  // final ImagePicker _picker = ImagePicker();
 
   final List<String> equipmentList = ['Transformer', 'Switch', 'Cable'];
   final List<String> complaintList = ['Not Working', 'Sparking', 'Noise'];
   final List<String> vendorList = ['Vendor A', 'Vendor B', 'Vendor C'];
 
   // Future<void> pickPhoto() async {
-  //   final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   final picked = await _picker.pickImage(source: ImageSource.camera);
   //   if (picked != null) {
   //     setState(() {
-  //       photoPath = picked.path;
+  //       _pickedImage = picked;
+  //       _pickedImageName = picked.name;
   //     });
   //   }
   // }
@@ -100,20 +106,17 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                     Text('Complaint Photo', style: AppTextStyles.caption),
                     SizedBox(height: 8),
                     GestureDetector(
-                      onTap: () {
-                        // TODO: trigger file picker
-                      },
+                      onTap: (){},
                       child: DottedBorderContainer(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Icon(Icons.upload,
-                                color: Color(0xFF1A73E8)), // Blue icon
+                            Icon(Icons.upload, color: Color(0xFF1A73E8)),
                             SizedBox(width: 8),
                             Text(
                               'Capture Photo',
                               style: TextStyle(
-                                color: Color(0xFF1A73E8), // Blue text
+                                color: Color(0xFF1A73E8),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -122,6 +125,13 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                         ),
                       ),
                     ),
+                    // if (_pickedImageName != null) ...[
+                    //   SizedBox(height: 8),
+                    //   Text(
+                    //     'Selected: $_pickedImageName',
+                    //     style: TextStyle(fontSize: 13, color: Colors.black54),
+                    //   ),
+                    // ],
                     SizedBox(height: 20),
                     // Create Button
                     CostomPrimaryButton(

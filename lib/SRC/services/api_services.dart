@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'https://your-api-url.com'; // Replace with your API base URL
+      'https://serverx.in/api'; // Replace with your API base URL
 
   // User Login
   Future<http.Response> login(String username, String password) async {
