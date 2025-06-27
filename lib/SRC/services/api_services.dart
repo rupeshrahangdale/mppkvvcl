@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static const String baseUrl =
@@ -42,5 +43,96 @@ class ApiService {
       body: jsonEncode(complaintData),
     );
     return response;
+  }
+
+  // Change password
+
+  Future<http.Response> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+    required String token, // pass token here
+  }) async {
+    final url = Uri.parse('https://serverx.in/api/change-password');
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
+      },
+      body: jsonEncode({
+        'old_password': oldPassword,
+        'password': newPassword,
+        'confirm_password': confirmPassword,
+      }),
+    );
+    return response;
+  }
+
+  static Future<String?> getCredentialsToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final username = prefs.getString('LoginUsername');
+    final password = prefs.getString('LoginPassword');
+
+    if (username == null || password == null) {
+      print("Username or password not found in SharedPreferences");
+      return null;
+    }
+
+    final response = await http.post(
+      Uri.parse("https://serverx.in/api/login"),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final token = data['token'];
+
+      if (token != null) {
+        // Save or update token if needed
+        await prefs.setString('token', token);
+        print("Token retrieved successfully: $token  \n\n");
+
+        return token;
+      }
+    }
+
+    print("Failed to retrieve token. Status: ${response.statusCode}");
+    return null;
+  }
+
+  Future<int> fetchComplaintCountByStatus({
+    required int userId,
+    required int status,
+  }) async {
+    final url =
+        Uri.parse('https://serverx.in/api/complaint-stats?user_id=$userId');
+    final credentialsToken = await ApiService.getCredentialsToken();
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': credentialsToken.toString(),
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      if (json['status'] == true && json['data'] is List) {
+        for (var item in json['data']) {
+          if (item['status'] == status) {
+            return item['count'] ?? 0;
+          }
+        }
+      }
+    }
+
+    // Default fallback if status not found
+    return 0;
   }
 }

@@ -7,6 +7,7 @@ import 'package:mppkvvcl/SRC/services/api_services.dart';
 import 'package:mppkvvcl/SRC/widgets/app_bar_section.dart';
 import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
 import 'package:mppkvvcl/SRC/widgets/input_field.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constent/app_constant.dart';
 import 'home_screen.dart';
 
@@ -117,17 +118,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           ApiService()
                               .login(username, password)
-                              .then((response) {
+                              .then((response) async {
                             final decoded = jsonDecode(response.body);
 
                             if (response.statusCode == 200 &&
                                 decoded['status'] == true) {
-
                               final user = decoded['user'];
+
                               print("ID: ${user['id']}");
                               print("Name: ${user['name']}");
                               print("Username: ${user['username']}");
+                              print("Token : ${decoded['token']} ");
 
+                              // Save user data to shared preferences or secure storage
+                              // For example, using shared_preferences:
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString('token', decoded['token']);
+                              await prefs.setString(
+                                  'username', user['username']);
+                              await prefs.setString('name', user['name']);
+                              await prefs.setString(
+                                  'profile_photo', user['profile_photo']);
+                              await prefs.setInt('user_id', user['id']);
+                              await prefs.setString('LoginUsername',
+                                  _userNameController.text.toString());
+                              await prefs.setString('LoginPassword',
+                                  _passwordController.text.toString());
 
                               // Show success message
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -139,12 +156,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // Navigate to home screen
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (_) => HomeScreen(
-                                  username: user['username'],
-                                  name: user['name'],
-                                  profilePhotoUrl: user['profile_photo'],
-                                )
-                                ,),
+                                MaterialPageRoute(
+                                  builder: (_) => HomeScreen(
+                                    username: user['username'],
+                                    name: user['name'],
+                                    profilePhotoUrl: user['profile_photo'],
+                                  ),
+                                ),
                               );
                             } else {
                               // Show error message

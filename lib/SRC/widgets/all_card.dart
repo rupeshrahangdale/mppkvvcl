@@ -304,8 +304,9 @@ Widget buildPendingComplaintCard({
           style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
-        Row(
+        Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "🗓️  $date",

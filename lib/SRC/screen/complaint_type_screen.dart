@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mppkvvcl/SRC/constent/app_constant.dart';
+import 'package:mppkvvcl/SRC/screen/AddNewComplaint/line_equipment_add_complaint.dart';
 import 'package:mppkvvcl/SRC/screen/new_complaint_screen.dart';
+import 'package:mppkvvcl/SRC/services/complain_service.dart';
 
 import '../widgets/all_card.dart';
 import '../widgets/app_bar_section.dart';
@@ -51,7 +53,9 @@ class ComplaintTypeScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AddComplaintScreen(),
+                                builder: (context) => AddComplaintScreen(
+                                  ComplaintType: "Control Center",
+                                ),
                               ),
                             );
                           },
@@ -68,9 +72,22 @@ class ComplaintTypeScreen extends StatelessWidget {
                           title: 'Feeders',
                           image: 'assets/dummy_data/panding complaint.png',
                         ),
-                        ComplaintCategoryCard(
-                          title: 'Line Equipment',
-                          image: 'assets/images/complaint.png',
+                        GestureDetector(
+                          onTap: () {
+                            // Navigate to the Add Complaint Screen and pass the title
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LineEquipmentAddComplaint(
+                                  ComplaintCategory: "Line Equipments",
+                                ),
+                              ),
+                            );
+                          },
+                          child: ComplaintCategoryCard(
+                            title: 'Line Equipment',
+                            image: 'assets/images/complaint.png',
+                          ),
                         ),
                       ],
                     ),

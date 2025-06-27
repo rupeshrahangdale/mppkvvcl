@@ -4,8 +4,7 @@ import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
 import '../constent/app_constant.dart';
 import '../widgets/app_bar_section.dart';
 import '../widgets/all_card.dart';
-import '../widgets/widgets.dart';
-import 'all_panding_complaint.dart';
+ import 'all_panding_complaint.dart';
 import 'my_added_complaint_screen.dart';
 import 'change_password_screen.dart';
 import 'complaint_type_screen.dart';
@@ -121,7 +120,7 @@ class HomeScreen extends StatelessWidget {
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    const AllComplaintScreen()),
+                                                    const MyAllAddedComplaintScreen()),
                                           );
                                         },
                                       ),

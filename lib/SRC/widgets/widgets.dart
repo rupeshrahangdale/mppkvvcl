@@ -1,5 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constent/app_constant.dart';
+import '../services/api_services.dart';
 import 'input_field.dart';
 import 'costom_button.dart';
 
@@ -239,9 +249,130 @@ class SuccessPopupDialog extends StatelessWidget {
 }
 
 // =======================================================
+//
+// void showResolvedBottomDrawer(BuildContext context) {
+//   final TextEditingController _controllerResolveNote = TextEditingController();
+//
+//   showModalBottomSheet(
+//     context: context,
+//     isScrollControlled: true,
+//     shape: const RoundedRectangleBorder(
+//       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//     ),
+//     builder: (context) {
+//       return Padding(
+//         padding: EdgeInsets.only(
+//           bottom: MediaQuery.of(context).viewInsets.bottom,
+//           top: 24,
+//           left: 20,
+//           right: 20,
+//         ),
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             // Drag handle
+//             Container(
+//               width: 40,
+//               height: 4,
+//               decoration: BoxDecoration(
+//                 color: Colors.grey.shade400,
+//                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//
+//             // Title
+//             const Text(
+//               'Resolve Complaint',
+//               style: AppTextStyles.heading,
+//             ),
+//             const SizedBox(height: 20),
+//
+//             CostomInputField(
+//               label: "Resolution Notes",
+//               hintText: "Enter resolution notes here",
+//               controller: _controllerResolveNote,
+//               maxLines: 3,
+//             ),
+//             const SizedBox(height: 16),
+//
+//             // Capture Image button
+//             GestureDetector(
+//               onTap: () {
+//                 pickPhoto();
+//               },
+//               child: DottedBorderContainer(
+//                 child: _pickedImageName != null
+//                     ? Padding(
+//                   padding: const EdgeInsets.symmetric(
+//                       horizontal: 18.0),
+//                   child: Text(
+//                     'Selected: $_pickedImageName',
+//                     overflow: TextOverflow.ellipsis,
+//                     maxLines: 1,
+//                     textAlign: TextAlign.center,
+//                     style: TextStyle(
+//                         fontSize: 13, color: Colors.black54),
+//                   ),
+//                 )
+//                     : Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     const Icon(Icons.upload,
+//                         color: Color(0xFF1A73E8)),
+//                     const SizedBox(width: 8),
+//                     Text(
+//                       'Capture Photo',
+//                       style: const TextStyle(
+//                           color: Color(0xFF1A73E8), fontSize: 16),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//
+//             // Submit Button
+//             CostomPrimaryButton(
+//                 text: "Mark as Resolve",
+//                 onPressed: () {
+//                   if (_controllerResolveNote.text.isNotEmpty) {
+//                     // Handle the resolve actio
+//                     ScaffoldMessenger.of(context).showSnackBar(
+//                       const SnackBar(
+//                         content: Text("Complaint marked as resolved"),
+//                       ),
+//                     );
+//                     SuccessPopupDialog(
+//                       title: "Complaint Resolved",
+//                       description: "Complaint has been marked as resolved.",
+//                       buttonText: "Okay",
+//                       onTap: () {
+//                         Navigator.pop(context); // Close the bottom sheet
+//                       },
+//                     );
+//                   } else {
+//                     ScaffoldMessenger.of(context).showSnackBar(
+//                       const SnackBar(
+//                         content: Text("Please enter resolution notes"),
+//                       ),
+//                     );
+//                   }
+//                 }),
+//
+//             const SizedBox(height: 20),
+//           ],
+//         ),
+//       );
+//     },
+//   );
+// }
 
-void showResolvedBottomDrawer(BuildContext context) {
+void showResolvedBottomDrawer(BuildContext context, int complaintId) {
   final TextEditingController _controllerResolveNote = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  XFile? _pickedImage;
+  String? _pickedImageName;
 
   showModalBottomSheet(
     context: context,
@@ -250,98 +381,181 @@ void showResolvedBottomDrawer(BuildContext context) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (context) {
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          top: 24,
-          left: 20,
-          right: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-              ),
-            ),
-            const SizedBox(height: 16),
+      return StatefulBuilder(
+        builder: (context, setState) {
+          Future<void> pickAndCompressPhoto() async {
+            final picked = await _picker.pickImage(source: ImageSource.camera);
+            if (picked != null) {
+              final file = File(picked.path);
 
-            // Title
-            const Text(
-              'Resolve Complaint',
-              style: AppTextStyles.heading,
-            ),
-            const SizedBox(height: 20),
+              final dir = await getTemporaryDirectory();
+              final targetPath =
+                  path.join(dir.path, 'compressed_${picked.name}');
 
-            CostomInputField(
-              label: "Resolution Notes",
-              hintText: "Enter resolution notes here",
-              controller: _controllerResolveNote,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
+              final compressedFile =
+                  await FlutterImageCompress.compressAndGetFile(
+                file.absolute.path,
+                targetPath,
+                quality: 70,
+                format: CompressFormat.jpeg,
+              );
 
-            // Capture Image button
-            GestureDetector(
-              onTap: () {
-                // TODO: trigger file picker
-              },
-              child: DottedBorderContainer(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.upload, color: Color(0xFF1A73E8)), // Blue icon
-                    SizedBox(width: 8),
-                    Text(
-                      'Capture Photo',
-                      style: TextStyle(
-                        color: Color(0xFF1A73E8), // Blue text
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+              if (compressedFile != null) {
+                setState(() {
+                  _pickedImage = XFile(compressedFile.path);
+                  _pickedImageName = picked.name;
+                });
+              } else {
+                print("❌ Compression failed");
+              }
+            }
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              top: 24,
+              left: 20,
+              right: 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Resolve Complaint',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                CostomInputField(
+                  label: "Resolution Notes",
+                  hintText: "Enter resolution notes here",
+                  controller: _controllerResolveNote,
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Resolution Photo', style: AppTextStyles.caption),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: pickAndCompressPhoto,
+                  child: DottedBorderContainer(
+                    child: _pickedImageName != null
+                        ? Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 18.0),
+                            child: Text(
+                              'Selected: $_pickedImageName',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 13, color: Colors.black54),
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.upload, color: Color(0xFF1A73E8)),
+                              SizedBox(width: 8),
+                              Text(
+                                'Capture Photo',
+                                style: TextStyle(
+                                  color: Color(0xFF1A73E8),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                CostomPrimaryButton(
+                  text: "Mark as Resolve",
+                  onPressed: () async {
+                    if (_controllerResolveNote.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Please enter resolution notes")),
+                      );
+                      return;
+                    }
+
+                    if (_pickedImage == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please capture a photo")),
+                      );
+                      return;
+                    }
+
+                    // Submit to API
+                    final prefs = await SharedPreferences.getInstance();
+                    final token = await ApiService.getCredentialsToken();
+                    final userId = prefs.getInt('user_id') ?? 2;
+
+                    var request = http.MultipartRequest(
+                      'POST',
+                      Uri.parse(
+                          'https://serverx.in/api/update-complaint/$complaintId'),
+                    );
+                    request.fields['resolved_by'] = userId.toString();
+                    request.fields['resolved_remark'] =
+                        _controllerResolveNote.text;
+                    request.files.add(await http.MultipartFile.fromPath(
+                      'resolved_photo',
+                      _pickedImage!.path,
+                    ));
+                    request.headers['Authorization'] = token.toString();
+                    request.headers['Accept'] = 'application/json';
+
+                    final response = await request.send();
+                    final responseBody = await response.stream.bytesToString();
+                    final result = jsonDecode(responseBody);
+
+                    if (result['status'] == true) {
+                      print(
+                          "✅ Complaint resolved successfully 👍👍👍👍👍👍👍👍👍👍👍👍👍");
+                      print(result);
+
+                      // Navigator.pop(context); // close drawer
+                      showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => SuccessPopupDialog(
+                                title: "Complaint Resolved",
+                                description: result['message'] ??
+                                    "Complaint has been marked please check your complaint ,Yor complain id is ${result["data"]["complain_id"]}.",
+                                buttonText: "Okay",
+                                onTap: () {
+                                 Navigator.pop(context);
+                                 // go back
+                                },
+                              ));
+
+                      print(
+                          "✅ Complaint resolved successfully and SuccessPopupDialog is shown ");
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(result['message'] ?? 'Failed')),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 16),
-
-            // Submit Button
-            CostomPrimaryButton(
-                text: "Mark as Resolve",
-                onPressed: () {
-                  if (_controllerResolveNote.text.isNotEmpty) {
-                    // Handle the resolve actio
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Complaint marked as resolved"),
-                      ),
-                    );
-                    SuccessPopupDialog(
-                      title: "Complaint Resolved",
-                      description: "Complaint has been marked as resolved.",
-                      buttonText: "Okay",
-                      onTap: () {
-                        Navigator.pop(context); // Close the bottom sheet
-                      },
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Please enter resolution notes"),
-                      ),
-                    );
-                  }
-                }),
-
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
       );
     },
   );

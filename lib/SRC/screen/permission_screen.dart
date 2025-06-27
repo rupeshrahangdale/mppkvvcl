@@ -64,10 +64,8 @@ class PermissionScreen extends StatelessWidget {
                 child: CostomPrimaryButton(
                     text: AppStrings.getStarted,
                     onPressed: () async {
-
-
-
-
+                      final permissionService = PermissionService();
+                      await permissionService.checkAndRequestPermissions();
 
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const LoginScreen()),

@@ -1,14 +1,63 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:mppkvvcl/SRC/widgets/app_bar_section.dart';
+import 'package:http/http.dart' as http;
+import 'package:mppkvvcl/SRC/screen/complaint_details_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constent/app_constant.dart';
+import '../models/panding_complaint_model.dart';
+import '../services/api_services.dart';
 import '../widgets/all_card.dart';
-import '../widgets/costom_button.dart';
-import 'complaint_details_screen.dart';
-import 'complaint_type_screen.dart';
+import '../widgets/app_bar_section.dart';
 
-class AllPendingComplaintScreen extends StatelessWidget {
+class AllPendingComplaintScreen extends StatefulWidget {
   const AllPendingComplaintScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AllPendingComplaintScreen> createState() =>
+      _AllPendingComplaintScreenState();
+}
+
+class _AllPendingComplaintScreenState extends State<AllPendingComplaintScreen> {
+  List<PendingComplaintModel> pendingComplaints = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPendingComplaints();
+  }
+
+  Future<void> fetchPendingComplaints() async {
+    try {
+      print("⏳ Getting token...");
+      final prefs = await SharedPreferences.getInstance();
+      final credentialsToken = await ApiService.getCredentialsToken();
+
+      final response = await http.get(
+        Uri.parse('https://serverx.in/api/complaints?status=2'),
+        headers: {
+          'Authorization': credentialsToken.toString(),
+          'Accept': 'application/json',
+        },
+      );
+
+      final data = jsonDecode(response.body);
+      print("\n\n\n\n 📥 Response: $data \n\n\n\n");
+      if (data['status'] == true) {
+        setState(() {
+          pendingComplaints = List<PendingComplaintModel>.from(
+            data['data'].map((json) => PendingComplaintModel.fromJson(json)),
+          );
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load');
+      }
+    } catch (e) {
+      print('❗ Error: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,53 +79,40 @@ class AllPendingComplaintScreen extends StatelessWidget {
                     Text(AppStrings.allPandingComplaintsDescription,
                         style: AppTextStyles.caption),
                     const SizedBox(height: 25),
-                    // list of all my added list Complaint Cards
-
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: 5, // Replace with your actual data length
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Navigate to complaint details screen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ComplaintDetailsScreen(
-                                  complaint: Complaint(
-                                    id: '10403229612',
-                                    title: 'AC Repairing Services',
-                                    description:
-                                        'The AC is not cooling properly and requires urgent attention.',
-                                    status: 'Pending',
-                                    date: DateTime.now(),
-                                  ),
-                                  complainCreator: "Rushabh Patel",
-                                ),
+                    isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : pendingComplaints.isEmpty
+                            ? const Text("No pending complaints found.")
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: pendingComplaints.length,
+                                itemBuilder: (context, index) {
+                                  final complaint = pendingComplaints[index];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ComplaintDetailsScreen(
+                                                    complaintID: complaint.id,
+                                                  )));
+                                    },
+                                    child: buildPendingComplaintCard(
+                                      id: complaint.id.toString(),
+                                      title: complaint.title,
+                                      date: complaint.date,
+                                      location: complaint.location,
+                                      status: complaint.status == 2
+                                          ? 'Pending'
+                                          : 'Unknown',
+                                      complaintDescription:
+                                          complaint.description,
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                          child: buildPendingComplaintCard(
-                            id: '10403229612',
-                            title: 'AC Repairing Services',
-                            date: ' 17 Oct 2023 ',
-                            location: 'Bhopal',
-                            status: 'Pending',
-                            complaintDescription:
-                                'The AC is not cooling properly and requires urgent attention.',
-                          ),
-                        );
-                      },
-                    ),
-
-                    // buildComplaintCard(
-                    //   id: '10403229612',
-                    //   title: 'AC Repairing Services',
-                    //   date: 'Last Update: 17 Oct 2023, Created: 17 Oct 2023',
-                    //   location: ' Ahmed Show Room, Guishan, Dhaka sav a  f jj dfh',
-                    //   status: 'Open',
-                    // ),
                   ],
                 ),
               ),
