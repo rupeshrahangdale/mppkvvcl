@@ -1,25 +1,49 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constent/app_constant.dart';
 import '../widgets/app_bar_section.dart';
 import '../widgets/all_card.dart';
- import 'all_panding_complaint.dart';
+import 'all_panding_complaint.dart';
+import 'login_screen.dart';
 import 'my_added_complaint_screen.dart';
 import 'change_password_screen.dart';
 import 'complaint_type_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  final String username;
-  final String name;
-  final String? profilePhotoUrl;
-
+class HomeScreen extends StatefulWidget {
   const HomeScreen({
     Key? key,
-    required this.username,
-    required this.name,
-    this.profilePhotoUrl,
   }) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String userName = 'User'; // default
+  String department = 'Department'; // default
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserName();
+  }
+
+  loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('name') ?? 'User';
+    final dept = prefs.getString('department') ?? 'Department';
+    await prefs.setBool('isLoggedIn', true);
+
+    setState(() {
+      userName = name;
+      department = dept;
+    });
+
+    print('User Name: $userName');
+    print('Department: $department');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +58,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Column(
                   children: [
-                    AppBarSection(),
+                    AppBarSection(context),
                     Padding(
                       padding:
                           const EdgeInsets.all(AppDimensions.defaultPadding),
@@ -53,7 +77,7 @@ class HomeScreen extends StatelessWidget {
                               color: Colors.black54,
                             ),
                           ),
-                          Text(name, style: AppTextStyles.heading),
+                          Text(userName, style: AppTextStyles.heading),
                           const SizedBox(height: 32),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -85,22 +109,6 @@ class HomeScreen extends StatelessWidget {
                                           builder: (context) =>
                                               ComplaintTypeScreen(),
                                         ));
-
-                                    // showSingleInputBottomDrawer(
-                                    //   context: context,
-                                    //   title: AppStrings.addNewComplaint,
-                                    //   hintText: 'Enter Complaint Title',
-                                    //   onSubmit: (String value) {
-                                    //     // Handle the new complaint submission
-                                    //     print('New Complaint: $value');
-                                    //     //close the bottom sheet
-                                    //
-                                    //     Navigator.pop(context);
-                                    //
-                                    //
-                                    //
-                                    //   }, label: 'Complaint Title', buttonText: 'Submit Complaint', controller: TextEditingController(), isLoading: false,  onButtonPressed: () {  },
-                                    // );
                                   },
                                   icon: CupertinoIcons.plus,
                                 ),

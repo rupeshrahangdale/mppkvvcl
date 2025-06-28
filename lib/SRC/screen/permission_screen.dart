@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 import 'package:mppkvvcl/SRC/screen/login_screen.dart';
 import 'package:mppkvvcl/SRC/widgets/costom_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/permissions_helper.dart';
 import '../widgets/all_card.dart';
@@ -66,6 +67,12 @@ class PermissionScreen extends StatelessWidget {
                     onPressed: () async {
                       final permissionService = PermissionService();
                       await permissionService.checkAndRequestPermissions();
+                      // After permissions are granted, navigate to login screen
+                      // You can also handle the case where permissions are denied
+
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      await prefs.setBool('firstTime', false);
 
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (_) => const LoginScreen()),

@@ -45,8 +45,6 @@ class CustomDropdownWidget extends StatelessWidget {
   }
 }
 
-
-
 class AddComplaintGPT extends StatefulWidget {
   @override
   _AddComplaintGPTState createState() => _AddComplaintGPTState();
@@ -67,11 +65,11 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
   }
 
   Future<void> fetchComplaintData() async {
-    final url = 'https://serverx.in/api/complain-master-data?complaint_type_id=1';
+    final url =
+        'https://serverx.in/api/complain-master-data?complaint_type_id=1';
     // get token that saved in shared preferences
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
-
 
     final response = await http.get(
       Uri.parse(url),
@@ -85,13 +83,13 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
       final decoded = jsonDecode(response.body);
       final List<dynamic> childrenJson = decoded['children'];
       setState(() {
-        complaintData = childrenJson.map((e) => ComplaintNode.fromJson(e)).toList();
+        complaintData =
+            childrenJson.map((e) => ComplaintNode.fromJson(e)).toList();
       });
     } else {
       print('Failed to fetch complaint data: ${response.statusCode}');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +109,8 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
                   selectedItem: selectedCategory?.name,
                   onChanged: (val) {
                     setState(() {
-                      selectedCategory = complaintData.firstWhere((e) => e.name == val);
+                      selectedCategory =
+                          complaintData.firstWhere((e) => e.name == val);
                       selectedDivision = null;
                       selectedLocation = null;
                       selectedEquipmentType = null;
@@ -119,7 +118,6 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
                   },
                 ),
               SizedBox(height: 10),
-
               if (selectedCategory != null)
                 CustomDropdownWidget(
                   lableText: 'Division',
@@ -128,14 +126,14 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
                   selectedItem: selectedDivision?.name,
                   onChanged: (val) {
                     setState(() {
-                      selectedDivision = selectedCategory!.children.firstWhere((e) => e.name == val);
+                      selectedDivision = selectedCategory!.children
+                          .firstWhere((e) => e.name == val);
                       selectedLocation = null;
                       selectedEquipmentType = null;
                     });
                   },
                 ),
               SizedBox(height: 10),
-
               if (selectedDivision != null)
                 CustomDropdownWidget(
                   lableText: 'Location',
@@ -144,13 +142,13 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
                   selectedItem: selectedLocation?.name,
                   onChanged: (val) {
                     setState(() {
-                      selectedLocation = selectedDivision!.children.firstWhere((e) => e.name == val);
+                      selectedLocation = selectedDivision!.children
+                          .firstWhere((e) => e.name == val);
                       selectedEquipmentType = null;
                     });
                   },
                 ),
               SizedBox(height: 10),
-
               if (selectedLocation != null)
                 CustomDropdownWidget(
                   lableText: 'Equipment Type',
@@ -159,16 +157,17 @@ class _AddComplaintGPTState extends State<AddComplaintGPT> {
                   selectedItem: selectedEquipmentType?.name,
                   onChanged: (val) {
                     setState(() {
-                      selectedEquipmentType = selectedLocation!.children.firstWhere((e) => e.name == val);
+                      selectedEquipmentType = selectedLocation!.children
+                          .firstWhere((e) => e.name == val);
                     });
                   },
                 ),
               SizedBox(height: 20),
-
               ElevatedButton(
                 onPressed: () {
                   if (selectedEquipmentType != null) {
-                    print('Complaint Created for ${selectedEquipmentType!.name}');
+                    print(
+                        'Complaint Created for ${selectedEquipmentType!.name}');
 
                     setState(() {
                       selectedCategory = null;

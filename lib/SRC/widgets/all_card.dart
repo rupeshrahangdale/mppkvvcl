@@ -78,14 +78,15 @@ class CategoryCard extends StatelessWidget {
 
 Widget buildComplaintCard({
   required String id,
-  required String title,
-  required String date,
-  required String location,
+  required String complaintCategory,
+  required String division,
+  required String vander,
   required String status,
+  required String createdAt,
 }) {
   Color statusColor;
   switch (status.toLowerCase()) {
-    case 'open':
+    case 'transferred':
       statusColor = Colors.blue;
       break;
     case 'resolved':
@@ -116,14 +117,14 @@ Widget buildComplaintCard({
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              complaintCategory,
               style: AppTextStyles.subtitle,
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
               ),
               child: Text(
                 status,
@@ -135,20 +136,25 @@ Widget buildComplaintCard({
             ),
           ],
         ),
-        const SizedBox(height: 12),
         Text(
           'Complaint No. : #$id',
           style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
         Text(
-          "🗓️  $date",
+          "$division",
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
         Text(
-          "📍 $location",
+          "$vander",
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          "$createdAt",
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
@@ -234,23 +240,23 @@ Widget buildActionCard({
 
 Widget buildPendingComplaintCard({
   required String id,
-  required String title,
+  required String complaintCategory,
   required String date,
-  required String location,
+  required String division,
   required String status,
-  required String complaintDescription,
+  required String vander,
 }) {
-  // Color statusColor;
-  // switch (status.toLowerCase()) {
-  //   case 'open':
-  //     statusColor = Colors.blue;
-  //     break;
-  //   case 'resolved':
-  //     statusColor = Colors.green;
-  //     break;
-  //   default:
-  //     statusColor = Colors.orange;
-  // }
+  Color statusColor;
+  switch (status.toLowerCase()) {
+    case 'open':
+      statusColor = Colors.blue;
+      break;
+    case 'resolved':
+      statusColor = Colors.green;
+      break;
+    default:
+      statusColor = Colors.orange;
+  }
 
   return Container(
     margin: const EdgeInsets.only(bottom: 16),
@@ -273,19 +279,19 @@ Widget buildPendingComplaintCard({
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              complaintCategory,
               style: AppTextStyles.subtitle,
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
               ),
               child: Text(
                 status,
                 style: AppTextStyles.caption.copyWith(
-                  color: Colors.orange,
+                  color: statusColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -299,28 +305,20 @@ Widget buildPendingComplaintCard({
         ),
         const SizedBox(height: 4),
         Text(
-          "$complaintDescription",
+          "$division",
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
+        ),
+        Text(
+          "$vander",
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "🗓️  $date",
-              overflow: TextOverflow.ellipsis,
-              style:
-                  AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
-            ),
-            Text(
-              "📍 $location",
-              overflow: TextOverflow.ellipsis,
-              style:
-                  AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
-            ),
-          ],
+        Text(
+          "$date",
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(color: Colors.grey.shade600),
         ),
       ],
     ),

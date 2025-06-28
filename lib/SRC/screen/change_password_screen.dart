@@ -31,7 +31,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              AppBarSection(),
+              AppBarSection(context),
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.defaultPaddingHorizontal * 2,
@@ -69,37 +69,50 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     const SizedBox(height: 30),
                     CostomPrimaryButton(
-                      text: "Update Password",
+                        text: "Update Password",
                         onPressed: () async {
                           final oldPwd = _oldPasswordController.text.trim();
                           final newPwd = _newPasswordController.text.trim();
-                          final confirmPwd = _confirmPasswordController.text.trim();
+                          final confirmPwd =
+                              _confirmPasswordController.text.trim();
                           // get token that saved in shared preferences
                           final prefs = await SharedPreferences.getInstance();
                           final token = prefs.getString('token') ?? '';
-                          print('Token: $token ========================> '); // Debugging line to check token
+                          print(
+                              'Token: $token ========================> '); // Debugging line to check token
 
                           if (newPwd != confirmPwd) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Password and Confirm Password must match')
-                              ,backgroundColor: Colors.redAccent,),
+                              SnackBar(
+                                content: Text(
+                                    'Password and Confirm Password must match'),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             return;
                           }
 
                           try {
                             final response = await ApiService().changePassword(
-                              oldPassword: _oldPasswordController.text.toString(),
-                              newPassword: _newPasswordController.text.toString(),
-                              confirmPassword: _confirmPasswordController.text.toString(),
+                              oldPassword:
+                                  _oldPasswordController.text.toString(),
+                              newPassword:
+                                  _newPasswordController.text.toString(),
+                              confirmPassword:
+                                  _confirmPasswordController.text.toString(),
                               token: token, // replace with actual token
                             );
 
                             final data = jsonDecode(response.body);
 
-                            if (response.statusCode == 200 && data['status'] == true) {
+                            if (response.statusCode == 200 &&
+                                data['status'] == true) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(data['message'] ?? 'Password changed successfully'),backgroundColor: Colors.green,),
+                                SnackBar(
+                                  content: Text(data['message'] ??
+                                      'Password changed successfully'),
+                                  backgroundColor: Colors.green,
+                                ),
                               );
 
                               _oldPasswordController.clear();
@@ -109,17 +122,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               Navigator.pop(context);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(data['message'] ?? data['error']),backgroundColor: Colors.redAccent,),
+                                SnackBar(
+                                  content:
+                                      Text(data['message'] ?? data['error']),
+                                  backgroundColor: Colors.redAccent,
+                                ),
                               );
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Something went wrong. Try again.')),
+                              SnackBar(
+                                  content:
+                                      Text('Something went wrong. Try again.')),
                             );
                           }
-                        }
-
-                    ),
+                        }),
                   ],
                 ),
               ),

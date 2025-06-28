@@ -537,8 +537,8 @@ void showResolvedBottomDrawer(BuildContext context, int complaintId) {
                                     "Complaint has been marked please check your complaint ,Yor complain id is ${result["data"]["complain_id"]}.",
                                 buttonText: "Okay",
                                 onTap: () {
-                                 Navigator.pop(context);
-                                 // go back
+                                  Navigator.pop(context);
+                                  // go back
                                 },
                               ));
 
@@ -565,6 +565,7 @@ void showResolvedBottomDrawer(BuildContext context, int complaintId) {
 
 void showTransferBottomDrawer({
   required BuildContext context,
+  required int complaintId,
   required List<String> dropdownItems,
   required void Function(String selectedValue) onTransfer,
 }) {
@@ -579,6 +580,56 @@ void showTransferBottomDrawer({
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
+          Future<void> transferComplaint() async {
+            final credentialsToken = await ApiService.getCredentialsToken();
+
+            final uri = Uri.parse(
+                "https://serverx.in/api/transfer-complaint/$complaintId");
+
+            var request = http.MultipartRequest("POST", uri);
+            request.headers['Authorization'] = credentialsToken.toString();
+            request.fields['transfer_to'] = selectedValue!;
+
+            try {
+              final response = await request.send();
+              final responseData = await response.stream.bytesToString();
+
+              if (response.statusCode == 200) {
+                final decoded = json.decode(responseData);
+                String message =
+                    decoded['message'] ?? "Complaint transferred successfully";
+                print("Success: $responseData");
+                onTransfer(selectedValue!);
+                Navigator.pop(context);
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => SuccessPopupDialog(
+                    title: "Complaint Transferred",
+                    description: message, // ✅ using API response here
+                    buttonText: "Okay",
+                    onTap: () {
+                      Navigator.pop(context); // close dialog
+                      Navigator.pop(context); // close bottom sheet
+                      print("Complaint transferred successfully ✅");
+                    },
+                  ),
+                );
+              } else {
+                print("Error: $responseData");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Transfer failed: $responseData")),
+                );
+              }
+            } catch (e) {
+              print("Exception: $e");
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Error during transfer")),
+              );
+            }
+          }
+
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -600,7 +651,6 @@ void showTransferBottomDrawer({
                 ),
                 const SizedBox(height: 16),
 
-                // Title
                 const Text(
                   'Transfer Complaint',
                   style: TextStyle(
@@ -610,7 +660,7 @@ void showTransferBottomDrawer({
                 ),
                 const SizedBox(height: 20),
 
-                // Custom dropdown
+                // Department Dropdown
                 CustomDropdownWidget(
                   items: dropdownItems,
                   selectedItem: selectedValue,
@@ -623,7 +673,7 @@ void showTransferBottomDrawer({
                   },
                 ),
 
-                const SizedBox(height: 70),
+                const SizedBox(height: 30),
 
                 // Transfer Button
                 SizedBox(
@@ -638,20 +688,18 @@ void showTransferBottomDrawer({
                     ),
                     onPressed: () {
                       if (selectedValue != null && selectedValue!.isNotEmpty) {
-                        onTransfer(selectedValue!);
-                        Navigator.pop(context);
+                        transferComplaint();
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Please select a department"),
-                          ),
+                              content: Text("Please select a department")),
                         );
                       }
                     },
                     child: const Text(
                       'Transfer',
                       style: TextStyle(
-                        color: AppColors.textBlack,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

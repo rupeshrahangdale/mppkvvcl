@@ -17,7 +17,7 @@ class ComplaintTypeScreen extends StatelessWidget {
           child: Column(
             children: [
               // App Bar Section
-              AppBarSection(),
+              AppBarSection(context),
               Padding(
                 padding: const EdgeInsets.all(AppDimensions.defaultPadding),
                 child: Column(

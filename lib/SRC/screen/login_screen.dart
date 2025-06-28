@@ -134,13 +134,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               // For example, using shared_preferences:
                               SharedPreferences prefs =
                                   await SharedPreferences.getInstance();
-                              await prefs.setString('token', decoded['token']);
-                              await prefs.setString(
-                                  'username', user['username']);
+                              // await prefs.setString('token', decoded['token']);
+
+                              await prefs.setInt('user_id', user['id']);
                               await prefs.setString('name', user['name']);
                               await prefs.setString(
+                                  'username', user['username']);
+                              await prefs.setString(
+                                  'department', user['department']);
+                              await prefs.setString(
                                   'profile_photo', user['profile_photo']);
-                              await prefs.setInt('user_id', user['id']);
                               await prefs.setString('LoginUsername',
                                   _userNameController.text.toString());
                               await prefs.setString('LoginPassword',
@@ -157,13 +160,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               // Navigate to home screen
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
-                                  builder: (_) => HomeScreen(
-                                    username: user['username'],
-                                    name: user['name'],
-                                    profilePhotoUrl: user['profile_photo'],
-                                  ),
+                                  builder: (_) => HomeScreen(),
                                 ),
                               );
+                              await prefs.setBool(
+                                  'isLoggedIn', true); // ✅ Add this line
                             } else {
                               // Show error message
                               ScaffoldMessenger.of(context).showSnackBar(

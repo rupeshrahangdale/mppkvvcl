@@ -114,7 +114,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
           child: Column(
             children: [
               // app bar section
-              AppBarSection(),
+              AppBarSection(context),
               Padding(
                 padding: const EdgeInsets.all(AppDimensions.defaultPadding),
                 child: Column(

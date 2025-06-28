@@ -5,9 +5,10 @@ class UserComplaint {
   final String equipmentType;
   final String location;
   final String equipment;
-  final String complaint;
+  final String complaintCategory;
   final String vendor;
   final String createdAt;
+  final String status; // Assuming you might want to add status later
 
   UserComplaint({
     required this.id,
@@ -15,9 +16,10 @@ class UserComplaint {
     required this.equipmentType,
     required this.location,
     required this.equipment,
-    required this.complaint,
+    required this.complaintCategory,
     required this.vendor,
     required this.createdAt,
+    required this.status,
   });
 
   factory UserComplaint.fromJson(Map<String, dynamic> json) {
@@ -28,9 +30,10 @@ class UserComplaint {
       equipmentType: desc['equipment_type'] ?? '',
       location: desc['location'] ?? '',
       equipment: desc['equipment'] ?? '',
-      complaint: desc['complaint'] ?? '',
+      complaintCategory: json['complain_category_name'] ?? 'not found',
       vendor: json['vendor'] ?? '',
       createdAt: json['created_at'] ?? '',
+      status: json['status_label'] ?? '', // Assuming status is a string
     );
   }
 }

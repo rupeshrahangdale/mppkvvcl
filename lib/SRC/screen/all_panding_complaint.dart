@@ -67,7 +67,7 @@ class _AllPendingComplaintScreenState extends State<AllPendingComplaintScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              AppBarSection(),
+              AppBarSection(context),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -101,14 +101,12 @@ class _AllPendingComplaintScreenState extends State<AllPendingComplaintScreen> {
                                     },
                                     child: buildPendingComplaintCard(
                                       id: complaint.id.toString(),
-                                      title: complaint.title,
+                                      complaintCategory:
+                                          complaint.complaintCetegory,
                                       date: complaint.date,
-                                      location: complaint.location,
-                                      status: complaint.status == 2
-                                          ? 'Pending'
-                                          : 'Unknown',
-                                      complaintDescription:
-                                          complaint.description,
+                                      division: complaint.division,
+                                      status: complaint.status,
+                                      vander: complaint.vender,
                                     ),
                                   );
                                 },

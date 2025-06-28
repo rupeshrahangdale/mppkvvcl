@@ -115,7 +115,7 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppBarSection(),
+                AppBarSection(context),
 
                 // Complaint Details
                 Container(
@@ -370,56 +370,48 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
       //     ? null
       //     : Padding(
       bottomNavigationBar: complaintData?["status_label"] == "Resolved"
-            ? null
-            : Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: CostomPrimaryButton(
-                text: "Mark as Resolve",
-                onPressed: () {
-
-                  showResolvedBottomDrawer(context, complaintData?["complain_id"]);
-                  print(
-                      "Complaint marked as resolved in widget section \n\n\n");
-                },
+          ? null
+          : Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CostomPrimaryButton(
+                      text: "Mark as Resolve",
+                      onPressed: () {
+                        showResolvedBottomDrawer(
+                            context, complaintData?["complain_id"]);
+                        print(
+                            "Complaint marked as resolved in widget section \n\n\n");
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CostomPrimaryButtonBorder(
+                      text: "Transfer",
+                      onPressed: () {
+                        showTransferBottomDrawer(
+                            context: context,
+                            complaintId: complaintData?["complain_id"],
+                            dropdownItems: [
+                              "DFE",
+                              "OIL",
+                              "STM",
+                              "HTM",
+                            ],
+                            onTransfer: (selected) {
+                              print(
+                                  "Complaint transferred to $selected in widget section \n\n\n");
+                            });
+                      },
+                      borderColor: Colors.redAccent,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: CostomPrimaryButtonBorder(
-                text: "Transfer",
-                onPressed: () {
-                  showTransferBottomDrawer(
-                    context: context,
-                    dropdownItems: [
-                      'Technical Team',
-                      'Billing Department',
-                      'Customer Support',
-                      'Field Staff',
-                    ],
-                    onTransfer: (selected) {
-                      print("Transferred to: $selected");
-                      // Handle the transfer logic here
-
-                      print(
-                          "Complaint transferred to: $selected in widget section");
-                    },
-                  );
-                },
-                borderColor: Colors.redAccent,
-              ),
-            ),
-          ],
-        ),
-      ),
-
-
-
-
-
-
     );
     ;
   }

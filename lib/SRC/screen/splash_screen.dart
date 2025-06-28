@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 import 'package:mppkvvcl/SRC/screen/permission_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'home_screen.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -14,11 +18,30 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(const Duration(seconds: 8), () {
+    checkLoginStatus();
+  }
+
+  Future<void> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final firstTime = prefs.getBool('firstTime') ?? true;
+
+    await Future.delayed(const Duration(seconds: 2)); // splash delay
+
+    if (firstTime) {
+      prefs.setBool('firstTime', false); // only once
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const PermissionScreen()),
       );
-    });
+    } else if (isLoggedIn) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override

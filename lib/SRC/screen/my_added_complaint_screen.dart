@@ -24,20 +24,24 @@ class MyAllAddedComplaintScreen extends StatefulWidget {
 class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
   List<UserComplaint> userComplaints = [];
   bool isLoading = true;
+  int totalComplaints = 0;
+  int openComplaints = 0; // Pending => status = 2
+  int closedComplaints = 0; // Resolved => status = 1
 
   @override
   void initState() {
     super.initState();
+    fetchComplaintStats();
     fetchUserComplaints();
   }
 
   Future<void> fetchUserComplaints() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('user_id') ?? 0;
-    final token = prefs.getString('token') ?? '';
+    final credentialsToken = await ApiService.getCredentialsToken();
     final url = 'https://serverx.in/api/complaints?user_id=$userId';
 
-    if (userId == 0 || token.isEmpty) {
+    if (userId == 0 || credentialsToken == null) {
       setState(() {
         isLoading = false;
       });
@@ -47,7 +51,7 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': token,
+        'Authorization': credentialsToken,
         'Accept': 'application/json',
       },
     );
@@ -68,14 +72,68 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
     }
   }
 
-  String formatDate(String dateTimeString) {
+  Future<void> fetchComplaintStats() async {
     try {
-      final dt = DateTime.parse(dateTimeString);
-      return "Created: \${dt.day} \${_monthName(dt.month)} \${dt.year}, \${_formatTime(dt)}";
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('user_id') ?? 0;
+      final token = prefs.getString('token') ?? '';
+
+      final url =
+          Uri.parse('https://serverx.in/api/complaint-stats?user_id=$userId');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': token,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        print("✅ Complaint stats fetched successfully: $json \n\n\n");
+        if (json['status'] == true && json['data'] is List) {
+          List data = json['data'];
+
+          int pending = (data.firstWhere((e) => e['status'] == 2,
+                      orElse: () => {'count': 0})['count'] ??
+                  0)
+              .toInt();
+          int resolved = (data.firstWhere((e) => e['status'] == 1,
+                      orElse: () => {'count': 0})['count'] ??
+                  0)
+              .toInt();
+          int cancelled = (data.firstWhere((e) => e['status'] == 0,
+                      orElse: () => {'count': 0})['count'] ??
+                  0)
+              .toInt();
+          int transferred = (data.firstWhere((e) => e['status'] == 3,
+                      orElse: () => {'count': 0})['count'] ??
+                  0)
+              .toInt();
+
+          setState(() {
+            openComplaints = pending;
+            closedComplaints = resolved;
+            totalComplaints = pending + resolved + cancelled + transferred;
+          });
+        }
+      } else {
+        print("❌ Failed to fetch stats: ${response.statusCode}");
+      }
     } catch (e) {
-      return "Created: N/A";
+      print("❗ Error fetching complaint stats: $e");
     }
   }
+
+  // String formatDate(String dateTimeString) {
+  //   try {
+  //     final dt = DateTime.parse(dateTimeString);
+  //     return "Created: \${dt.day} \${_monthName(dt.month)} \${dt.year}, \${_formatTime(dt)}";
+  //   } catch (e) {
+  //     return "Created: N/A";
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +143,7 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              AppBarSection(),
+              AppBarSection(context),
               Container(
                 margin: const EdgeInsets.all(AppDimensions.defaultPadding),
                 padding: const EdgeInsets.all(AppDimensions.defaultPadding),
@@ -117,12 +175,14 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
                     Row(
                       children: [
                         Expanded(
-                            child: buildStatCard(
-                                '${userComplaints.length}', 'Total')),
+                            child: buildStatCard('$totalComplaints', 'Total')),
                         const SizedBox(width: 8),
-                        Expanded(child: buildStatCard('99', 'Open')),
+                        Expanded(
+                            child: buildStatCard('$openComplaints', 'Open')),
                         const SizedBox(width: 8),
-                        Expanded(child: buildStatCard('13', 'Closed')),
+                        Expanded(
+                            child:
+                                buildStatCard('$closedComplaints', 'Closed')),
                       ],
                     ),
                   ],
@@ -156,10 +216,11 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
                                         ))),
                             child: buildComplaintCard(
                               id: complaint.id.toString(),
-                              title: complaint.complaint,
-                              date: complaint.createdAt,
-                              location: complaint.location,
-                              status: 'Pending',
+                              complaintCategory: complaint.complaintCategory,
+                              division: complaint.division,
+                              vander: complaint.location,
+                              status: complaint.status,
+                              createdAt: complaint.createdAt,
                             ),
                           );
                         },

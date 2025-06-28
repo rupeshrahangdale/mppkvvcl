@@ -1,30 +1,29 @@
-
 class PendingComplaintModel {
   final int id;
-  final String title;
-  final String location;
+  final String complaintCetegory;
+  final String division;
   final String date;
-  final String description;
-  final int status ;
+  final String vender;
+  final String status;
 
   PendingComplaintModel({
     required this.id,
-    required this.title,
-    required this.location,
+    required this.complaintCetegory,
+    required this.division,
     required this.date,
-    required this.description,
-     required this.status,
+    required this.vender,
+    required this.status,
   });
 
   factory PendingComplaintModel.fromJson(Map<String, dynamic> json) {
     final complaintDesc = json['complaint_description'] ?? {};
     return PendingComplaintModel(
       id: json['complain_id'],
-      title: complaintDesc['complaint'] ?? '',
-      location: complaintDesc['location'] ?? '',
+      complaintCetegory: json['complain_category_name'] ?? '',
+      division: complaintDesc['division'] ?? '',
       date: json['created_at'] ?? '',
-      description: complaintDesc['equipment'] ?? '',
-      status: json['status'] ?? 'Pending',
+      vender: json['vendor'] ?? '',
+      status: json['status_label'] ?? 'Pending',
     );
   }
 }

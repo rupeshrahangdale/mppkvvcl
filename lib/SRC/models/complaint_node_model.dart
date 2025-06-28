@@ -10,7 +10,10 @@ class ComplaintNode {
     return ComplaintNode(
       id: json['id'],
       name: json['name'],
-      children: (json['children'] as List?)?.map((e) => ComplaintNode.fromJson(e)).toList() ?? [],
+      children: (json['children'] as List?)
+              ?.map((e) => ComplaintNode.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }
