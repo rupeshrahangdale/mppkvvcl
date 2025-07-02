@@ -6,6 +6,9 @@ import 'package:mppkvvcl/SRC/services/complain_service.dart';
 
 import '../widgets/all_card.dart';
 import '../widgets/app_bar_section.dart';
+import 'AddNewComplaint/control_center_add_complaint.dart';
+import 'AddNewComplaint/feeder_add_complaint.dart';
+import 'AddNewComplaint/substation_add_complaint.dart';
 
 class ComplaintTypeScreen extends StatelessWidget {
   @override
@@ -49,13 +52,13 @@ class ComplaintTypeScreen extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
+                            print("Complaint Category: Control Center");
                             // Navigate to the Add Complaint Screen and pass the title
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AddComplaintScreen(
-                                  ComplaintType: "Control Center",
-                                ),
+                                builder: (context) =>
+                                    ContrlCenterAddComplaint(),
                               ),
                             );
                           },
@@ -64,13 +67,35 @@ class ComplaintTypeScreen extends StatelessWidget {
                             image: 'assets/dummy_data/add compa.png',
                           ),
                         ),
-                        ComplaintCategoryCard(
-                          title: 'Substation',
-                          image: 'assets/dummy_data/my complaint.png',
+                        GestureDetector(
+                          onTap: () {
+                            // Navigate to the Add Complaint Screen and pass the title
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SubstationAddComplaint(),
+                              ),
+                            );
+                          },
+                          child: ComplaintCategoryCard(
+                            title: 'Substation',
+                            image: 'assets/dummy_data/my complaint.png',
+                          ),
                         ),
-                        ComplaintCategoryCard(
-                          title: 'Feeders',
-                          image: 'assets/dummy_data/panding complaint.png',
+                        GestureDetector(
+                          onTap: () {
+                            // Navigate to the Add Complaint Screen and pass the title
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FeederAddComplaint(),
+                              ),
+                            );
+                          },
+                          child: ComplaintCategoryCard(
+                            title: 'Feeders',
+                            image: 'assets/dummy_data/panding complaint.png',
+                          ),
                         ),
                         GestureDetector(
                           onTap: () {

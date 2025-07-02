@@ -20,6 +20,8 @@ class AllPendingComplaintScreen extends StatefulWidget {
 class _AllPendingComplaintScreenState extends State<AllPendingComplaintScreen> {
   List<PendingComplaintModel> pendingComplaints = [];
   bool isLoading = true;
+  static final String baseUrl = AppConfig.apiBaseURL;
+
 
   @override
   void initState() {
@@ -34,7 +36,7 @@ class _AllPendingComplaintScreenState extends State<AllPendingComplaintScreen> {
       final credentialsToken = await ApiService.getCredentialsToken();
 
       final response = await http.get(
-        Uri.parse('https://serverx.in/api/complaints?status=2'),
+        Uri.parse('$baseUrl/api/complaints?status=2'),
         headers: {
           'Authorization': credentialsToken.toString(),
           'Accept': 'application/json',

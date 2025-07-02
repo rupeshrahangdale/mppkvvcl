@@ -236,4 +236,22 @@ class AppTextStyles {
     fontWeight: FontWeight.normal,
     color: Colors.red,
   );
+
+ }
+
+
+
+
+// lib/services/app_config.dart
+
+
+class AppConfig {
+  static String apiBaseURL = ''; // to be set dynamically
+
+  static String get login => '$apiBaseURL/api/login';
+  static String get registerComplaint => '$apiBaseURL/api/register-complaint';
+  static String get changePassword => '$apiBaseURL/api/change-password';
+  static String get getAllComplaints => '$apiBaseURL/api/get-all-complaints';
+  static String get getPendingComplaints => '$apiBaseURL/api/get-pending-complaints';
+  static String get getMyComplaints => '$apiBaseURL/api/get-my-complaints';
 }

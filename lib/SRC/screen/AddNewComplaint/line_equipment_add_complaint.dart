@@ -34,21 +34,39 @@ class LineEquipmentAddComplaint extends StatefulWidget {
 
 class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
   List<ComplaintNode> complaintData = [];
+  List<ComplaintType> complaintTypes = [];
+  List<VendorModel> vendorList = [];
   ComplaintNode? selectedCategory;
   ComplaintNode? selectedDivision;
   ComplaintNode? selectedLineEquipmentType;
   ComplaintNode? selectedLocation;
-  ComplaintNode? selectedEquipment;
-  ComplaintNode? selectedComplaint;
-  ComplaintNode? selectedVandorName;
+  // ComplaintNode? selectedEquipment;
+  VendorModel? selectedVendor;
+  ComplaintType? selectedComplaintType;
   final moreInfoController = TextEditingController();
+  bool _isLoading = false;
 
   String get ComplaintCategory => widget.ComplaintCategory;
+  static final String baseUrl = AppConfig.apiBaseURL;
+  String? tokenformApi;
+
+  String? photoPath;
+  XFile? _pickedImage;
+  String? _pickedImageName = null;
+  final ImagePicker _picker = ImagePicker();
+
+  void _showSnackbar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.redAccent : Colors.green,
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-
     if (ComplaintCategory == "Control Center") {
       fetchComplaintData(1);
     } else if (ComplaintCategory == "Substation") {
@@ -57,25 +75,27 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
       fetchComplaintData(3);
     } else if (ComplaintCategory == "Line Equipments") {
       fetchComplaintData(4);
+
+      print(
+          "Fetching data for Line Equipments 0000000000000000000000000000000000000000000");
     }
-    // fetchComplaintData(1);
+    Future.delayed(const Duration(seconds: 2))
+        .then((_) => fetchComplaintTypeAndVendors()); // Fetch after 2 seconds
   }
 
   Future<void> fetchComplaintData(int complaintCategory) async {
     final url =
-        'https://serverx.in/api/complain-master-data?complaint_type_id=$complaintCategory';
+        '$baseUrl/api/complain-master-data?complaint_type_id=$complaintCategory';
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
-    print("get token form Api ================================== ");
     final credentialsToken = await ApiService.getCredentialsToken();
+    tokenformApi = credentialsToken.toString();
     print("get token form Api $credentialsToken ========================");
 
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': credentialsToken.toString(),
+        'Authorization': tokenformApi.toString(),
         'Accept': 'application/json',
       },
     );
@@ -102,26 +122,27 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
         selectedDivision = null;
         selectedLineEquipmentType = null;
         selectedLocation = null;
-        selectedEquipment = null;
-        selectedComplaint = null;
-        selectedVandorName = null;
+        // selectedEquipment = null;
+        // selectedComplaintType = null;
+        // selectedVendor = null;
       });
     } else {
-      print('Failed to fetch complaint data: ${response.statusCode}');
+      _showSnackbar('Failed to fetch complaint data: ${response.statusCode}',
+          isError: true);
+      print(
+          'Failed to fetch complaint data: ${response.statusCode} ${response.body}');
     }
   }
 
   Future<void> submitComplaint() async {
     try {
-      print("⏳ Getting token...");
       final credentialsToken = await ApiService.getCredentialsToken();
       final prefs = await SharedPreferences.getInstance();
       final userID = prefs.getInt('user_id') ?? 0;
-
       print("🔐 Token: $credentialsToken");
       print("👤 User ID: $userID");
 
-      final url = 'https://serverx.in/api/add-complaint';
+      final url = '$baseUrl/api/add-complaint';
 
       final body = {
         "complain_category": 1, // fixed or make dynamic if needed
@@ -129,10 +150,11 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
           "division": selectedDivision?.name ?? '',
           "equipment_type": selectedLineEquipmentType?.name ?? '',
           "location": selectedLocation?.name ?? '',
-          "equipment": selectedEquipment?.name ?? '',
-          "complaint": selectedComplaint?.name ?? '',
+          // "equipment": selectedEquipment?.name ?? '',
+          "complaint": selectedComplaintType?.cType ?? '',
         },
-        "vendor": selectedVandorName?.name ?? '',
+        "vendor": selectedVendor?.vName ?? '',
+
         "remark": moreInfoController.text.toString(), // More Info field
         "added_by": userID,
         "complain_photo": _pickedImage != null
@@ -146,8 +168,8 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
         'Accept': 'application/json',
       };
 
-      print("📤 Sending complaint data to server...");
-      print("📦 Payload: ${jsonEncode(body)}");
+      print("\n\n\n\n 📤 Sending complaint data to server...");
+      print("📦 Payload: ${jsonEncode(body)} \n\n\n\n");
 
       final response = await http.post(
         Uri.parse(url),
@@ -195,20 +217,19 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
 
   Future<void> submitComplaintWithPhoto() async {
     try {
-      print("⏳ Getting token...");
       final credentialsToken = await ApiService.getCredentialsToken();
       final prefs = await SharedPreferences.getInstance();
       final userID = prefs.getInt('user_id') ?? 0;
 
-      final url = Uri.parse('https://serverx.in/api/add-complaint');
+      final url = Uri.parse('$baseUrl/api/add-complaint');
 
       final request = http.MultipartRequest('POST', url);
       request.headers['Authorization'] = credentialsToken.toString();
       request.headers['Accept'] = 'application/json';
 
       // Add fields
-      request.fields['complain_category'] = '4'; // or make dynamic
-      request.fields['vendor'] = selectedVandorName?.name ?? '';
+      request.fields['complain_category'] = '1'; // or make dynamic
+      request.fields['vendor'] = selectedVendor?.vName ?? '';
       request.fields['remark'] = moreInfoController.text;
       request.fields['added_by'] = userID.toString();
 
@@ -219,10 +240,10 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
           selectedLineEquipmentType?.name ?? '';
       request.fields['complaint_description[location]'] =
           selectedLocation?.name ?? '';
-      request.fields['complaint_description[equipment]'] =
-          selectedEquipment?.name ?? '';
+      // request.fields['complaint_description[equipment]'] =
+      //     selectedEquipment?.name ?? '';
       request.fields['complaint_description[complaint]'] =
-          selectedComplaint?.name ?? '';
+          selectedComplaintType?.cType ?? '';
 
       // Add photo if selected
       if (_pickedImage != null) {
@@ -263,41 +284,102 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
             ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text('❌ Failed: ${responseData['errors'] ?? 'Unknown error'}'),
-            backgroundColor: Colors.redAccent,
-          ));
+          _showSnackbar(
+              '❌ Failed: ${responseData['errors'] ?? 'Unknown error'}');
         }
       } else {
-        print("❌ Error response status: ${response.statusCode}");
         print("❌ Error response status: ${response}");
         print(
             "❌ Error response body: ${await response.stream.bytesToString()}");
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('❌ Complaint not submitted. Server error.'),
-          backgroundColor: Colors.redAccent,
-        ));
+        _showSnackbar(
+          '❌ Complaint not submitted. Server error: ${response.statusCode}',
+          isError: true,
+        );
       }
     } catch (e) {
       print('❗ Error submitting complaint: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('❗ Unexpected error occurred.'),
-        backgroundColor: Colors.redAccent,
-      ));
+      _showSnackbar(
+        '❗ An error occurred while submitting complaint',
+        isError: true,
+      );
     }
   }
 
-  String? photoPath;
-  //
-  XFile? _pickedImage;
-  String? _pickedImageName = null;
-  final ImagePicker _picker = ImagePicker();
-  //
-  // final List<String> equipmentList = ['Transformer', 'Switch', 'Cable'];
-  // final List<String> complaintList = ['Not Working', 'Sparking', 'Noise'];
-  // final List<String> vendorList = ['Vendor A', 'Vendor B', 'Vendor C'];
-  //
+  Future<void> fetchComplaintTypeAndVendors() async {
+    final credentialsToken = await ApiService.getCredentialsToken();
+
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/api/complaint-type?complain_category_id=1"),
+        headers: {
+          'Authorization': credentialsToken.toString(),
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        setState(() {
+          complaintTypes = (data['complaint_type'] as List)
+              .map((e) => ComplaintType.fromJson(e))
+              .toList();
+
+          vendorList = (data['vendor'] as List)
+              .map((e) => VendorModel.fromJson(e))
+              .toList();
+
+          // ❌ Do not pre-select any value
+          selectedComplaintType = null;
+          selectedVendor = null;
+        });
+      } else {
+        // ⛔ First attempt failed — retry using tokenformApi
+        final response1 = await http.get(
+          Uri.parse("$baseUrl/api/complaint-type?complain_category_id=1"),
+          headers: {
+            'Authorization': tokenformApi.toString(),
+            'Accept': 'application/json',
+          },
+        );
+
+        print("Retry API status: ${response1.statusCode}");
+        print("Retry response: ${response1.body}");
+
+        if (response1.statusCode == 200) {
+          final data = json.decode(response1.body);
+
+          setState(() {
+            complaintTypes = (data['complaint_type'] as List)
+                .map((e) => ComplaintType.fromJson(e))
+                .toList();
+
+            vendorList = (data['vendor'] as List)
+                .map((e) => VendorModel.fromJson(e))
+                .toList();
+
+            // ❌ Do not pre-select any value
+            selectedComplaintType = null;
+            selectedVendor = null;
+          });
+        } else {
+          print("⚠️ Failed to fetch complaint types and vendors on retry.");
+
+          _showSnackbar(
+            '❌ Failed to fetch complaint types and vendors: ${response1.statusCode}',
+            isError: true,
+          );
+        }
+      }
+    } catch (e) {
+      print("❗ Error in fetchComplaintTypeAndVendors(): $e");
+      _showSnackbar(
+        'An error occurred while loading data.',
+        isError: true,
+      );
+    }
+  }
+
   Future<void> pickPhoto() async {
     final picked = await _picker.pickImage(source: ImageSource.camera);
     if (picked != null) {
@@ -362,9 +444,9 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
                             selectedDivision = null;
                             selectedLocation = null;
                             selectedLineEquipmentType = null;
-                            selectedEquipment = null;
-                            selectedComplaint = null;
-                            selectedVandorName = null;
+                            // selectedEquipment = null;
+                            selectedComplaintType = null;
+                            selectedVendor = null;
                           });
                         },
                       ),
@@ -386,9 +468,9 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
                                 .firstWhere((e) => e.name == val);
                             selectedLocation = null;
                             selectedLineEquipmentType = null;
-                            selectedEquipment = null;
-                            selectedComplaint = null;
-                            selectedVandorName = null;
+                            // selectedEquipment = null;
+                            selectedComplaintType = null;
+                            selectedVendor = null;
                           });
                         },
                       ),
@@ -409,9 +491,9 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
                                 .children
                                 .firstWhere((e) => e.name == val);
                             selectedLocation = null;
-                            selectedEquipment = null;
-                            selectedComplaint = null;
-                            selectedVandorName = null;
+                            // selectedEquipment = null;
+                            selectedComplaintType = null;
+                            selectedVendor = null;
                           });
                         },
                       ),
@@ -431,73 +513,46 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
                             selectedLocation = selectedLineEquipmentType!
                                 .children
                                 .firstWhere((e) => e.name == val);
-                            selectedEquipment = null;
-                            selectedComplaint = null;
-                            selectedVandorName = null;
+                            // selectedEquipment = null;
+                            selectedComplaintType = null;
+                            selectedVendor = null;
                           });
                         },
                       ),
                     const SizedBox(height: 8),
                     // Equipment Dropdown
 
-                    if (selectedLocation != null &&
-                        selectedLocation!.children.isNotEmpty)
-                      CustomDropdownWidget(
-                        lableText: 'Equipment',
-                        hintText: 'Select Equipment',
-                        items: selectedLocation!.children
-                            .map((e) => e.name)
-                            .toList(),
-                        selectedItem: selectedEquipment?.name,
-                        onChanged: (val) {
-                          setState(() {
-                            selectedEquipment = selectedLocation!.children
-                                .firstWhere((e) => e.name == val);
-                            selectedComplaint = null;
-                            selectedVandorName = null;
-                          });
-                        },
-                      ),
-                    const SizedBox(height: 8),
-
-                    // Complaint Dropdown
-                    if (selectedEquipment != null &&
-                        selectedEquipment!.children.isNotEmpty)
+                    if (complaintTypes.isNotEmpty)
                       CustomDropdownWidget(
                         lableText: 'Complaint',
                         hintText: 'Select Complaint',
-                        items: selectedEquipment!.children
-                            .map((e) => e.name)
-                            .toList(),
-                        selectedItem: selectedComplaint?.name,
+                        items: complaintTypes.map((e) => e.cType).toList(),
+                        selectedItem: selectedComplaintType?.cType,
                         onChanged: (val) {
                           setState(() {
-                            selectedComplaint = selectedEquipment!.children
-                                .firstWhere((e) => e.name == val);
-                            selectedVandorName = null;
+                            selectedComplaintType = complaintTypes
+                                .firstWhere((e) => e.cType == val);
                           });
                         },
                       ),
                     const SizedBox(height: 8),
-                    // Vendor Name Dropdown
-                    if (selectedComplaint != null &&
-                        selectedComplaint!.children.isNotEmpty)
+
+// Vendor Dropdown
+                    if (vendorList.isNotEmpty)
                       CustomDropdownWidget(
                         lableText: 'Vendor Name',
                         hintText: 'Select Vendor Name',
-                        items: selectedComplaint!.children
-                            .map((e) => e.name)
-                            .toList(),
-                        selectedItem: selectedVandorName?.name,
+                        items: vendorList.map((e) => e.vName).toList(),
+                        selectedItem: selectedVendor?.vName,
                         onChanged: (val) {
                           setState(() {
-                            selectedVandorName = selectedComplaint!.children
-                                .firstWhere((e) => e.name == val);
+                            selectedVendor =
+                                vendorList.firstWhere((e) => e.vName == val);
                           });
                         },
                       ),
 
-                    // const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
                     // Complaint Type Dropdown
 
@@ -551,22 +606,72 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
                     // Create Button
                     CostomPrimaryButton(
                       text: 'Create Complaint',
+                      isLoading: _isLoading,
                       onPressed: () async {
-                        // if (selectedCategory == null ||
-                        //     selectedDivision == null ||
-                        //     selectedLineEquipmentType == null ||
-                        //     selectedLocation == null ||
-                        //     selectedEquipment == null ||
-                        //     selectedComplaint == null ||
-                        //     selectedVandorName == null) {
-                        //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        //     content: Text(
-                        //         'Please select all fields before submitting.'),
-                        //     backgroundColor: Colors.orange,
-                        //   ));
-                        //   return;
-                        // }
-                        // Handle complaint creation logic here
+                        // add validation for for all fields and if not selected then show snackbar which field is not selected
+                        if (selectedCategory == null) {
+                          _showSnackbar(
+                            'Please select a category.',
+                            isError: true,
+                          );
+                          return;
+                        }
+                        if (selectedDivision == null) {
+                          _showSnackbar(
+                            'Please select a division.',
+                            isError: true,
+                          );
+                          return;
+                        }
+                        if (selectedLineEquipmentType == null) {
+                          _showSnackbar(
+                            'Please select a line equipment type.',
+                            isError: true,
+                          );
+                          return;
+                        }
+                        if (selectedLocation == null) {
+                          _showSnackbar(
+                            'Please select a location.',
+                            isError: true,
+                          );
+                          return;
+                        }
+
+                        if (selectedComplaintType == null) {
+                          _showSnackbar(
+                            'Please select a complaint type.',
+                            isError: true,
+                          );
+                          return;
+                        }
+                        if (selectedVendor == null) {
+                          _showSnackbar(
+                            'Please select a vendor.',
+                            isError: true,
+                          );
+                          return;
+                        }
+                        if (moreInfoController.text.isEmpty) {
+                          _showSnackbar(
+                            'Please provide more information.',
+                            isError: true,
+                          );
+
+                          return;
+                        }
+                        if (_pickedImage == null) {
+                          _showSnackbar(
+                            'Please capture a photo.',
+                            isError: true,
+                          );
+                          return;
+                        }
+
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        // All fields are selected, proceed with complaint creation
                         print(
                             "\n \n Creating Complaint with data: -------->  ");
                         print('✅ Complaint Created');
@@ -575,23 +680,27 @@ class _LineEquipmentAddComplaintState extends State<LineEquipmentAddComplaint> {
                         print(
                             'Line Equipment Type: ---> ${selectedLineEquipmentType?.name}');
                         print('Location: ---> ${selectedLocation?.name}');
-                        print('Equipment: ---> ${selectedEquipment?.name}');
-                        print('Complaint: ---> ${selectedComplaint?.name}');
-                        print('Vendor Name: ---> ${selectedVandorName?.name}');
+                        print(
+                            'Complaint: ---> ${selectedComplaintType?.cType}');
+                        print('Vendor Name: ---> ${selectedVendor?.vName}');
                         print('More Info: ---> ${moreInfoController.text}');
                         print(
                             'Photo Path: ---> ${_pickedImage?.path ?? "No photo selected"}');
                         print('Complaint Created -----------> \n\n\n');
 
-                        if (_pickedImage != null) {
-                          await submitComplaintWithPhoto();
-                        } else {
-                          await submitComplaint(); // fallback
+                        try {
+                          if (_pickedImage != null) {
+                            await submitComplaintWithPhoto();
+                          } else {
+                            await submitComplaint();
+                          }
+                        } finally {
+                          setState(() {
+                            _isLoading = false;
+                          });
                         }
                       },
                     ),
-
-                    // CostomPrimaryButton(text: , onPressed: onPressed)
                   ],
                 ),
               ),

@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl =
-      'https://serverx.in/api'; // Replace with your API base URL
+  // static const String baseUrl =
+  //     ApiEndpoints.baseURL; // Replace with your API base URL
+  static final String baseUrl = AppConfig.apiBaseURL;
 
   // User Login
   Future<http.Response> login(String username, String password) async {
-    final url = Uri.parse('$baseUrl/login'); // Replace with your login endpoint
+    final url =
+        Uri.parse('$baseUrl/api/login'); // Replace with your login endpoint
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -53,7 +56,7 @@ class ApiService {
     required String confirmPassword,
     required String token, // pass token here
   }) async {
-    final url = Uri.parse('https://serverx.in/api/change-password');
+    final url = Uri.parse('$baseUrl/api/change-password');
     final response = await http.post(
       url,
       headers: {
@@ -134,5 +137,36 @@ class ApiService {
 
     // Default fallback if status not found
     return 0;
+  }
+}
+
+// lib/services/remote_config_service.dart
+
+class RemoteConfigService {
+  static Future<void> loadBaseURL() async {
+    final url = Uri.parse(
+        "https://nextinlabs.com/AppRemoteConfiguration/remote-configure.php");
+
+    final response = await http.post(
+      url,
+      body: jsonEncode({
+        "app_id": "SCDARMDY_C_1",
+        "app_package_name": "com.nxtinlbs.scadaremedycms"
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      print("Base URL response: ${jsonData.toString()}");
+      if (jsonData["status"] == "success") {
+        AppConfig.apiBaseURL = jsonData["data"]["app_config_url"];
+        print(
+            "Base URL loaded successfully: ${AppConfig.apiBaseURL}  \n\n\n\n");
+      } else {
+        throw Exception("Base URL config not found");
+      }
+    } else {
+      throw Exception("Failed to load base URL");
+    }
   }
 }

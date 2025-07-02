@@ -27,19 +27,26 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
   int totalComplaints = 0;
   int openComplaints = 0; // Pending => status = 2
   int closedComplaints = 0; // Resolved => status = 1
+  static final String baseUrl = AppConfig.apiBaseURL;
+
 
   @override
   void initState() {
     super.initState();
-    fetchComplaintStats();
+    initializeApp(); // Call the async method to fetch data
+  }
+
+  Future<void> initializeApp() async {
+    await fetchComplaintStats();
     fetchUserComplaints();
   }
+
 
   Future<void> fetchUserComplaints() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('user_id') ?? 0;
     final credentialsToken = await ApiService.getCredentialsToken();
-    final url = 'https://serverx.in/api/complaints?user_id=$userId';
+    final url = '$baseUrl/api/complaints?user_id=$userId';
 
     if (userId == 0 || credentialsToken == null) {
       setState(() {
@@ -79,7 +86,7 @@ class _MyAllAddedComplaintScreenState extends State<MyAllAddedComplaintScreen> {
       final token = prefs.getString('token') ?? '';
 
       final url =
-          Uri.parse('https://serverx.in/api/complaint-stats?user_id=$userId');
+          Uri.parse('$baseUrl/api/complaint-stats?user_id=$userId');
 
       final response = await http.get(
         url,

@@ -10,14 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_services.dart';
 import '../widgets/widgets.dart';
 
-// Sample Complaint data model
-class Complaint {
-  final String id;
 
-  Complaint({
-    required this.id,
-  });
-}
 
 class ComplaintDetailsScreen extends StatefulWidget {
   final int complaintID;
@@ -32,6 +25,8 @@ class ComplaintDetailsScreen extends StatefulWidget {
 class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
   Map<String, dynamic>? complaintData;
   bool isLoading = true;
+  // get base URL from ApiEndpoints
+  static final String baseUrl = AppConfig.apiBaseURL;
 
   @override
   void initState() {
@@ -46,8 +41,7 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
       final credentialsToken = await ApiService.getCredentialsToken();
       final token = prefs.getString('token') ?? '';
 
-      final url =
-          'https://serverx.in/api/complaints?comp_id=${widget.complaintID}';
+      final url = '$baseUrl/api/complaints?comp_id=${widget.complaintID}';
 
       final response = await http.get(
         Uri.parse(url),
@@ -72,6 +66,45 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
     } catch (e) {
       print('Error fetching complaint details: $e');
       setState(() => isLoading = false);
+    }
+  }
+
+  Future<List<String>> fetchDepartments() async {
+    final credentialsToken = await ApiService.getCredentialsToken();
+    final prefs = await SharedPreferences.getInstance();
+
+    // 🔐 Get the current user's department from local storage
+    final currentUserDepartment = prefs.getString('department') ?? '';
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/api/user-department"),
+      headers: {
+        'Authorization': '$credentialsToken', // 🛠 Add Bearer if needed
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      if (jsonData['status'] == true) {
+        List<dynamic> departments = jsonData['departments'];
+
+        // 🧹 Exclude current user's department from the list
+        List<String> filteredDepartments = departments
+            .map((e) => e.toString())
+            .where((dept) => dept != currentUserDepartment)
+            .toList();
+
+        print("All Departments: $departments");
+        print("User Department: $currentUserDepartment");
+        print("Filtered: $filteredDepartments");
+
+        return filteredDepartments;
+      } else {
+        throw Exception("Failed to load departments");
+      }
+    } else {
+      throw Exception("Failed to fetch departments: ${response.statusCode}");
     }
   }
 
@@ -161,10 +194,6 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
                                   ['equipment_type'] ??
                               '-',
                           title: "Equipment Type- "),
-                      RichTextWidget(
-                          subtitle:
-                              "${complaintData?['complaint_description']['equipment'] ?? '-'}",
-                          title: "Equipment- "),
 
                       RichTextWidget(
                           subtitle:
@@ -212,10 +241,11 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
                   margin: const EdgeInsets.symmetric(
                       horizontal: AppDimensions.defaultPadding),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Text('Status', style: AppTextStyles.subtitle),
+                          const Text('Status:', style: AppTextStyles.subtitle),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -266,67 +296,25 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Text('Created On:',
-                              style: AppTextStyles.subtitle),
-                          const SizedBox(width: 8),
-                          Text(complaintData?["created_at"] ?? '-',
-                              style: const TextStyle(fontSize: 13)),
-                        ],
-                      ),
+                      RichTextW(
+                          subtitle: complaintData?["created_at"] ?? '-',
+                          title: "Created On: "),
                       if (complaintData?["status_label"] == "Resolved") ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Text('Resolved On:',
-                                style: AppTextStyles.subtitle),
-                            const SizedBox(width: 8),
-                            Text(complaintData?["updated_at"] ?? '-',
-                                style: const TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-
-                        Row(
-                          children: [
-                            const Text('Resolved Remark:',
-                                style: AppTextStyles.subtitle),
-                            const SizedBox(width: 8),
-                            Text(complaintData?["resolved_remark"] ?? '-',
-                                style: const TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-
-                        // time taken to resolve
-                        Row(
-                          children: [
-                            const Text('Time Taken:',
-                                style: AppTextStyles.subtitle),
-                            const SizedBox(width: 8),
-                            Text(complaintData?["resolve_time"] ?? '-',
-                                style: const TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-
-                        // resolved by
-                        Row(
-                          children: [
-                            const Text('Resolved By:',
-                                style: AppTextStyles.subtitle),
-                            const SizedBox(width: 8),
-                            Text(complaintData?["resolved_by_name"] ?? '-',
-                                style: const TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-
+                        RichTextW(
+                            subtitle: complaintData?["updated_at"] ?? '-',
+                            title: "Updated On: "),
+                        RichTextW(
+                            subtitle: complaintData?["resolved_remark"] ?? '-',
+                            title: "Resolved Remark: "),
+                        RichTextW(
+                            subtitle: complaintData?["resolve_time"] ?? '-',
+                            title: "Time Taken: "),
+                        RichTextW(
+                            subtitle: complaintData?["resolved_by_name"] ?? '-',
+                            title: "Resolved By: "),
                         GestureDetector(
                           onTap: () => showImagePopup(
-                              complaintData?['complain_photo_url'] ??
+                              complaintData?['resolved_photo_url'] ??
                                   'No image available'),
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 8.0),
@@ -344,15 +332,22 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
                                 const SizedBox(width: 10),
                                 Text(
                                   "View Resolved Image",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
+                                  style: AppTextStyles.caption
+                                      .copyWith(color: AppColors.textBlack),
                                 ),
                               ],
                             ),
                           ),
                         ),
                       ],
+                      if (complaintData?["status_label"] == "Transferred") ...[
+                        RichTextW(
+                            subtitle: complaintData?["transfer_to"] ?? '-',
+                            title: "Transfer To: "),
+                        RichTextW(
+                            subtitle: complaintData?["updated_at"] ?? '-',
+                            title: "Updated On: "),
+                      ]
                     ],
                   ),
                 ),
@@ -391,20 +386,26 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
                   Expanded(
                     child: CostomPrimaryButtonBorder(
                       text: "Transfer",
-                      onPressed: () {
-                        showTransferBottomDrawer(
+                      onPressed: () async {
+                        try {
+                          final departmentList = await fetchDepartments();
+
+                          showTransferBottomDrawer(
                             context: context,
                             complaintId: complaintData?["complain_id"],
-                            dropdownItems: [
-                              "DFE",
-                              "OIL",
-                              "STM",
-                              "HTM",
-                            ],
+                            dropdownItems: departmentList,
                             onTransfer: (selected) {
                               print(
-                                  "Complaint transferred to $selected in widget section \n\n\n");
-                            });
+                                  "Complaint transferred to $selected in widget section");
+                            },
+                          );
+                        } catch (e) {
+                          print("Failed to load departments: $e");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text("Unable to fetch departments.")),
+                          );
+                        }
                       },
                       borderColor: Colors.redAccent,
                     ),
@@ -414,37 +415,5 @@ class _ComplaintDetailsScreenState extends State<ComplaintDetailsScreen> {
             ),
     );
     ;
-  }
-}
-
-class RichTextWidget extends StatelessWidget {
-  const RichTextWidget({
-    super.key,
-    required this.subtitle,
-    required this.title,
-  });
-
-  final String subtitle;
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Text.rich(
-        TextSpan(
-          text: title,
-          style: AppTextStyles.caption.copyWith(
-              color: AppColors.textBlack, fontWeight: FontWeight.w400),
-          children: [
-            TextSpan(
-              text: subtitle,
-              style: AppTextStyles.caption.copyWith(color: AppColors.greyText),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

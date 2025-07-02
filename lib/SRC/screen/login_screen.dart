@@ -22,6 +22,66 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false; // ✅ Spinner flag
+
+  void _showSnackbar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.redAccent : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    final username = _userNameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(AppStrings.fillAllFields),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await ApiService().login(username, password);
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && decoded['status'] == true) {
+        final user = decoded['user'];
+        final prefs = await SharedPreferences.getInstance();
+
+        await prefs.setInt('user_id', user['id']);
+        await prefs.setString('name', user['name']);
+        await prefs.setString('username', user['username']);
+        await prefs.setString('department', user['department']);
+        await prefs.setString('profile_photo', user['profile_photo']);
+        await prefs.setString('LoginUsername', username);
+        await prefs.setString('LoginPassword', password);
+        await prefs.setBool('isLoggedIn', true);
+
+        _showSnackbar(decoded['message']);
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        _showSnackbar(decoded['message'], isError: true);
+      }
+    } catch (e) {
+      print("Login    error: $e");
+      // Show error message
+      _showSnackbar("Something went wrong: $e", isError: true);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,22 +135,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     // Email Field
 
-                    // CostomInputField(
-                    //     label: AppStrings.username,
-                    //     hintText: AppStrings.enterUsername,
-                    //     controller: _userNameController),
                     MyTextField(
                       fieldName: AppStrings.username,
                       myController: _userNameController,
                     ),
                     const SizedBox(height: 16),
-                    // Password Field
-                    // CostomInputField(
-                    //   label: AppStrings.password,
-                    //   hintText: AppStrings.enterPassword,
-                    //   controller: _passwordController,
-                    //   obscureText: _obscurePassword,
-                    // ),
 
                     MyTextField(
                       fieldName: AppStrings.password,
@@ -100,90 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 32),
                     CostomPrimaryButton(
-                        text: AppStrings.login,
-                        onPressed: () {
-                          final username = _userNameController.text;
-                          final password = _passwordController.text;
-
-                          // Validate input
-                          if (username.isEmpty || password.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: Colors.red,
-                                content: Text(AppStrings.fillAllFields),
-                              ),
-                            );
-                            return;
-                          }
-
-                          ApiService()
-                              .login(username, password)
-                              .then((response) async {
-                            final decoded = jsonDecode(response.body);
-
-                            if (response.statusCode == 200 &&
-                                decoded['status'] == true) {
-                              final user = decoded['user'];
-
-                              print("ID: ${user['id']}");
-                              print("Name: ${user['name']}");
-                              print("Username: ${user['username']}");
-                              print("Token : ${decoded['token']} ");
-
-                              // Save user data to shared preferences or secure storage
-                              // For example, using shared_preferences:
-                              SharedPreferences prefs =
-                                  await SharedPreferences.getInstance();
-                              // await prefs.setString('token', decoded['token']);
-
-                              await prefs.setInt('user_id', user['id']);
-                              await prefs.setString('name', user['name']);
-                              await prefs.setString(
-                                  'username', user['username']);
-                              await prefs.setString(
-                                  'department', user['department']);
-                              await prefs.setString(
-                                  'profile_photo', user['profile_photo']);
-                              await prefs.setString('LoginUsername',
-                                  _userNameController.text.toString());
-                              await prefs.setString('LoginPassword',
-                                  _passwordController.text.toString());
-
-                              // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.green,
-                                  content: Text(decoded['message']),
-                                ),
-                              );
-
-                              // Navigate to home screen
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (_) => HomeScreen(),
-                                ),
-                              );
-                              await prefs.setBool(
-                                  'isLoggedIn', true); // ✅ Add this line
-                            } else {
-                              // Show error message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.red,
-                                  content: Text(decoded['message']),
-                                ),
-                              );
-                            }
-                          }).catchError((error) {
-                            // Optional: Handle exceptions (e.g., network errors)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: Colors.red,
-                                content: Text('Something went wrong: $error'),
-                              ),
-                            );
-                          });
-                        }),
+                      text: AppStrings.login,
+                      isLoading: _isLoading,
+                      onPressed: _handleLogin,
+                    ),
                   ],
                 ),
 

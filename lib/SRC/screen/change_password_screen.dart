@@ -7,6 +7,8 @@ import '../services/api_services.dart';
 import '../widgets/app_bar_section.dart';
 import '../widgets/input_field.dart';
 import '../widgets/costom_button.dart';
+import '../widgets/widgets.dart';
+import 'login_screen.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({Key? key}) : super(key: key);
@@ -20,8 +22,91 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-
   bool _obscureConfirm = true;
+  bool _isLoading = false; // ✅ For loading spinner in button
+
+
+  // ✅ Snackbar moved outside build method
+  void _showSnackbar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.redAccent : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _handleChangePassword() async {
+    final oldPwd = _oldPasswordController.text.trim();
+    final newPwd = _newPasswordController.text.trim();
+    final confirmPwd = _confirmPasswordController.text.trim();
+
+    if (oldPwd.isEmpty) {
+      _showSnackbar('Please enter your old password');
+      return;
+    }
+    if (newPwd.isEmpty) {
+      _showSnackbar('Please enter a new password');
+      return;
+    }
+    if (confirmPwd.isEmpty) {
+      _showSnackbar('Please confirm your new password');
+      return;
+    }
+    if (newPwd != confirmPwd) {
+      _showSnackbar('New password and confirm password must match');
+      return;
+    }
+    setState(() => _isLoading = true);
+    final credentialsToken = await ApiService.getCredentialsToken();
+    final prefs = await SharedPreferences.getInstance();
+
+    try {
+      final response = await ApiService().changePassword(
+        oldPassword: oldPwd,
+        newPassword: newPwd,
+        confirmPassword: confirmPwd,
+        token: credentialsToken.toString(),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['status'] == true) {
+        _showSnackbar(data['message'] ?? 'Password changed successfully',
+            isError: false);
+
+        _oldPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+
+        await prefs.setBool('isLoggedIn', false);
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => SuccessPopupDialog(
+            title: "Password Changed",
+            description: data['message'] ?? 'Password changed successfully 👍',
+            buttonText: AppStrings.okay,
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+              print(
+                  "Complaint submitted successfully! \n\n\n 👍👍👍👍👍😂😍😁🙌");
+            },
+          ),
+        );
+      } else {
+        _showSnackbar(data['message'] ?? data['error']);
+      }
+    } catch (e) {
+      _showSnackbar('Something went wrong. Try again.');
+    }finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +133,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: MyTextField(
-                          fieldName: AppStrings.oldPassword,
-                          myController: _oldPasswordController),
+                        fieldName: AppStrings.oldPassword,
+                        myController: _oldPasswordController,
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -69,74 +155,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                     const SizedBox(height: 30),
                     CostomPrimaryButton(
-                        text: "Update Password",
-                        onPressed: () async {
-                          final oldPwd = _oldPasswordController.text.trim();
-                          final newPwd = _newPasswordController.text.trim();
-                          final confirmPwd =
-                              _confirmPasswordController.text.trim();
-                          // get token that saved in shared preferences
-                          final prefs = await SharedPreferences.getInstance();
-                          final token = prefs.getString('token') ?? '';
-                          print(
-                              'Token: $token ========================> '); // Debugging line to check token
+                      text: "Update Password",
+                      onPressed: _handleChangePassword,
+                        isLoading: _isLoading,// You can manage loading state if needed,
 
-                          if (newPwd != confirmPwd) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Password and Confirm Password must match'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            return;
-                          }
-
-                          try {
-                            final response = await ApiService().changePassword(
-                              oldPassword:
-                                  _oldPasswordController.text.toString(),
-                              newPassword:
-                                  _newPasswordController.text.toString(),
-                              confirmPassword:
-                                  _confirmPasswordController.text.toString(),
-                              token: token, // replace with actual token
-                            );
-
-                            final data = jsonDecode(response.body);
-
-                            if (response.statusCode == 200 &&
-                                data['status'] == true) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(data['message'] ??
-                                      'Password changed successfully'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-
-                              _oldPasswordController.clear();
-                              _newPasswordController.clear();
-                              _confirmPasswordController.clear();
-
-                              Navigator.pop(context);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text(data['message'] ?? data['error']),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text('Something went wrong. Try again.')),
-                            );
-                          }
-                        }),
+                    ),
                   ],
                 ),
               ),

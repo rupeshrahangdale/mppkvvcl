@@ -248,131 +248,14 @@ class SuccessPopupDialog extends StatelessWidget {
   }
 }
 
-// =======================================================
-//
-// void showResolvedBottomDrawer(BuildContext context) {
-//   final TextEditingController _controllerResolveNote = TextEditingController();
-//
-//   showModalBottomSheet(
-//     context: context,
-//     isScrollControlled: true,
-//     shape: const RoundedRectangleBorder(
-//       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-//     ),
-//     builder: (context) {
-//       return Padding(
-//         padding: EdgeInsets.only(
-//           bottom: MediaQuery.of(context).viewInsets.bottom,
-//           top: 24,
-//           left: 20,
-//           right: 20,
-//         ),
-//         child: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             // Drag handle
-//             Container(
-//               width: 40,
-//               height: 4,
-//               decoration: BoxDecoration(
-//                 color: Colors.grey.shade400,
-//                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-//               ),
-//             ),
-//             const SizedBox(height: 16),
-//
-//             // Title
-//             const Text(
-//               'Resolve Complaint',
-//               style: AppTextStyles.heading,
-//             ),
-//             const SizedBox(height: 20),
-//
-//             CostomInputField(
-//               label: "Resolution Notes",
-//               hintText: "Enter resolution notes here",
-//               controller: _controllerResolveNote,
-//               maxLines: 3,
-//             ),
-//             const SizedBox(height: 16),
-//
-//             // Capture Image button
-//             GestureDetector(
-//               onTap: () {
-//                 pickPhoto();
-//               },
-//               child: DottedBorderContainer(
-//                 child: _pickedImageName != null
-//                     ? Padding(
-//                   padding: const EdgeInsets.symmetric(
-//                       horizontal: 18.0),
-//                   child: Text(
-//                     'Selected: $_pickedImageName',
-//                     overflow: TextOverflow.ellipsis,
-//                     maxLines: 1,
-//                     textAlign: TextAlign.center,
-//                     style: TextStyle(
-//                         fontSize: 13, color: Colors.black54),
-//                   ),
-//                 )
-//                     : Row(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     const Icon(Icons.upload,
-//                         color: Color(0xFF1A73E8)),
-//                     const SizedBox(width: 8),
-//                     Text(
-//                       'Capture Photo',
-//                       style: const TextStyle(
-//                           color: Color(0xFF1A73E8), fontSize: 16),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//             const SizedBox(height: 16),
-//
-//             // Submit Button
-//             CostomPrimaryButton(
-//                 text: "Mark as Resolve",
-//                 onPressed: () {
-//                   if (_controllerResolveNote.text.isNotEmpty) {
-//                     // Handle the resolve actio
-//                     ScaffoldMessenger.of(context).showSnackBar(
-//                       const SnackBar(
-//                         content: Text("Complaint marked as resolved"),
-//                       ),
-//                     );
-//                     SuccessPopupDialog(
-//                       title: "Complaint Resolved",
-//                       description: "Complaint has been marked as resolved.",
-//                       buttonText: "Okay",
-//                       onTap: () {
-//                         Navigator.pop(context); // Close the bottom sheet
-//                       },
-//                     );
-//                   } else {
-//                     ScaffoldMessenger.of(context).showSnackBar(
-//                       const SnackBar(
-//                         content: Text("Please enter resolution notes"),
-//                       ),
-//                     );
-//                   }
-//                 }),
-//
-//             const SizedBox(height: 20),
-//           ],
-//         ),
-//       );
-//     },
-//   );
-// }
 
 void showResolvedBottomDrawer(BuildContext context, int complaintId) {
   final TextEditingController _controllerResolveNote = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   XFile? _pickedImage;
   String? _pickedImageName;
+    final String baseUrl = AppConfig.apiBaseURL;
+
 
   showModalBottomSheet(
     context: context,
@@ -506,7 +389,7 @@ void showResolvedBottomDrawer(BuildContext context, int complaintId) {
                     var request = http.MultipartRequest(
                       'POST',
                       Uri.parse(
-                          'https://serverx.in/api/update-complaint/$complaintId'),
+                          '$baseUrl/api/update-complaint/$complaintId'),
                     );
                     request.fields['resolved_by'] = userId.toString();
                     request.fields['resolved_remark'] =
@@ -537,7 +420,12 @@ void showResolvedBottomDrawer(BuildContext context, int complaintId) {
                                     "Complaint has been marked please check your complaint ,Yor complain id is ${result["data"]["complain_id"]}.",
                                 buttonText: "Okay",
                                 onTap: () {
-                                  Navigator.pop(context);
+                                  Navigator.pop(context); // close dialog
+                                  Navigator.pop(context); // close bottom sheet
+                                  Navigator.pop(context); // close bottom sheet
+                                  Navigator.pop(context); // close bottom sheet
+
+
                                   // go back
                                 },
                               ));
@@ -570,6 +458,8 @@ void showTransferBottomDrawer({
   required void Function(String selectedValue) onTransfer,
 }) {
   String? selectedValue;
+  final String baseUrl = AppConfig.apiBaseURL;
+
 
   showModalBottomSheet(
     context: context,
@@ -584,7 +474,7 @@ void showTransferBottomDrawer({
             final credentialsToken = await ApiService.getCredentialsToken();
 
             final uri = Uri.parse(
-                "https://serverx.in/api/transfer-complaint/$complaintId");
+                "$baseUrl/api/transfer-complaint/$complaintId");
 
             var request = http.MultipartRequest("POST", uri);
             request.headers['Authorization'] = credentialsToken.toString();
@@ -612,6 +502,8 @@ void showTransferBottomDrawer({
                     onTap: () {
                       Navigator.pop(context); // close dialog
                       Navigator.pop(context); // close bottom sheet
+                      Navigator.pop(context); // close bottom sheet
+
                       print("Complaint transferred successfully ✅");
                     },
                   ),
@@ -714,4 +606,70 @@ void showTransferBottomDrawer({
       );
     },
   );
+}
+
+
+//========================================================
+class RichTextWidget extends StatelessWidget {
+  const RichTextWidget({
+    super.key,
+    required this.subtitle,
+    required this.title,
+  });
+
+  final String subtitle;
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Text.rich(
+        TextSpan(
+          text: title,
+          style: AppTextStyles.caption.copyWith(
+              color: AppColors.textBlack, fontWeight: FontWeight.w400),
+          children: [
+            TextSpan(
+              text: subtitle,
+              style: AppTextStyles.caption.copyWith(color: AppColors.greyText),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class RichTextW extends StatelessWidget {
+  const RichTextW({
+    super.key,
+    required this.subtitle,
+    required this.title,
+  });
+
+  final String subtitle;
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Text.rich(
+        TextSpan(
+          text: title,
+          style: AppTextStyles.subtitle,
+          children: [
+            TextSpan(
+              text: subtitle,
+              style: AppTextStyles.caption.copyWith(
+                  color: AppColors.greyText, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

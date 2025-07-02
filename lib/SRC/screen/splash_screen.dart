@@ -3,6 +3,7 @@ import 'package:mppkvvcl/SRC/constent/app_constant.dart';
 import 'package:mppkvvcl/SRC/screen/permission_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/api_services.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -16,9 +17,13 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    checkLoginStatus();
+    initializeApp(); // call your async setup separately
+  }
+
+  Future<void> initializeApp() async {
+    await RemoteConfigService.loadBaseURL();
+    await checkLoginStatus();
   }
 
   Future<void> checkLoginStatus() async {
